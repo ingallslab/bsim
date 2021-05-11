@@ -35,14 +35,12 @@ public class CrossFeedingBacterium extends Bacterium {
 	
 	/** Amount of amino acid consumed (/hr). */
 	private double consumptionRate;
-	/** Max amount of amino acid consumed by a bacterium (/hr). */
-	private double consumptionMax;
 	
 	// Constants for Monod Equation
-    /** Maximum growth rate of the cell (um/hr). */
+    /** Maximum specific growth rate of the cell (1/hr). */
     final private double mu_max = 1.3;
-    /** The "half-velocity constant"; the value of [S] when mu/mu_max = 0.5 (g/dm^3). */
-    final private double K_s = 2.2e-1;//2.2e-5;
+    /** Substrate affinity constant (g/L). Must be in same units as S! */
+    final private double K_s = 2.2e-1;
     
     // Constants for yield conversion
     final double yield_coefficient = 1.0;			// Arbitrary value between 0 and 1
@@ -61,9 +59,7 @@ public class CrossFeedingBacterium extends Bacterium {
         
         production = true;
         productionNum = 1e3;
-        consumptionRate = 1.0;//0.8;
-        consumptionMax = 1e3;
-        
+
     	Random bacRng = new Random(); 		// Random number generator
         bacRng.setSeed(50); 				// Initializes random number generator
         initial_growth_rate = initial_growth_stdv * bacRng.nextGaussian() + initial_growth_mean;
@@ -82,9 +78,7 @@ public class CrossFeedingBacterium extends Bacterium {
         this.consumption_field = consumption_field;
 
         production = true;
-        productionNum = 1e3;
-        consumptionRate = 1.0;//0.8;
-        consumptionMax = 1e3;
+        productionNum = 1e3; //units?
 
         Random bacRng = new Random(); 		// Random number generator
         bacRng.setSeed(50); 				// Initializes random number generator
@@ -97,33 +91,24 @@ public class CrossFeedingBacterium extends Bacterium {
     @Override
     public void action() { 						// Runs at every time step
         super.action();
-        
-        // Consumption field decays as it is consumed
+
         if ( consumption_field.getConc(position) > 0 ) {
-        	double consumptionNum = consumption_field.getConc(position) * consumptionRate * sim.getDt();
-        	
-        	// The maximum amount of amino acids able to be consumed by a bacterium
-        	if ( consumptionNum > consumptionMax ) {
-        		consumption_field.addQuantity( position, -consumptionMax );
-        	}
-        	else {
-        		consumption_field.addQuantity( position, -consumptionNum );
-        	}
-        	
-    		// Cell growth rate is dependent on consumption 
-            double growth = (mu_max * sim.getDt()) * ( consumptionNum / ( K_s + consumptionNum ) );
-            total_bio_mass += growth;
-            
-            // Yield conversion
-            double growth_rate = (growth * total_bio_mass) / yield_coefficient;
+            //Set cell growth rate
+            double S = consumption_field.getConc(position); // Concentration of subtrate S being consumed
+            double growth_rate = mu_max * (S/(K_s + S)); // Monod equation
             setK_growth(growth_rate);
-            
-            //System.out.println(total_bio_mass);
-            //System.out.println(consumptionNum + " " + growth_rate);
+
+            //Compute consumption of amino acid field
+            double dVdt = Math.PI * Math.pow(this.radius,2) * this.L * growth_rate * (1 - (this.L / this.L_max)); // Rate of change in volume, assuming cylindrical geometry
+            consumptionRate = 1/yield_coefficient * this.density * dVdt; // mass substrate per unit time
+            consumption_field.addQuantity( position, -consumptionRate*sim.getDt() );
+
+        } else {
+            setK_growth(0.0);
         }
 		
-		// Production of amino acid is dependent on nutrient field ( in access )
-        // Production in this simulation is constant
+		// Production of amino acid is dependent on nutrient field, which is assumed to be in excess
+        // Production of the amino acid is assumed to be constant
 		if ( isProducing() ) {						
 			production_field.addQuantity(position, productionNum * sim.getDt() );	
 		}
