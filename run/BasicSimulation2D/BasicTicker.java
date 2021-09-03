@@ -49,7 +49,7 @@ public class BasicTicker extends BSimTicker {
         bac_dead = new ArrayList();
         mover = new RelaxationMoverGrid(bacteriaAll, sim);
     }
-    
+
     /** Sets the flag for growth. **/
     public void setGrowth(boolean b) { WITH_GROWTH = b; }
 
@@ -163,7 +163,7 @@ public class BasicTicker extends BSimTicker {
 
         endTimeAction = System.nanoTime();
         if ((sim.getTimestep() % LOG_INTERVAL) == 0) {
-            System.out.println("Switch took " + (endTimeAction - startTimeAction) / 1e6 + " ms.");
+            // System.out.println("Switch took " + (endTimeAction - startTimeAction) / 1e6 + " ms.");
         }
 
     }

@@ -16,10 +16,13 @@ public class Parameters {
     // @parameter means an optional user-specified value in the command line
     // export mode means output appears
     @Parameter(names = "-export", description = "Enable export mode.")
-    public boolean export = true;
+    public boolean export = false;
 
     @Parameter(names = "-export_path", description = "export location")
     public String export_path = "default";
+
+    @Parameter(names = "-input_data", description = "path to input data")
+    public String input_data = "default";
 
     @Parameter(names="-export_time",arity=1,description = "export time")
     public static double export_time = 0.5;// Previously was 10, and simulation time was 100
@@ -28,7 +31,7 @@ public class Parameters {
     @Parameter(names = "-dim", arity = 3, description = "The dimensions (x, y, z) of simulation environment (um).")
     //public List<Double> simDimensions = new ArrayList<>(Arrays.asList(new Double[]{198.0, 159.0, 1.0}));
     //public List<Double> simDimensions = new ArrayList<>(Arrays.asList(new Double[]{1870 / 13.89, 2208 / 13.89, 1.0}));
-    public List<Double> simDimensions = new ArrayList<>(Arrays.asList(new Double[]{400 / 13.89, 400 / 13.89, 1.0}));
+    public List<Double> simDimensions = new ArrayList<>(Arrays.asList(new Double[]{1800 / 13.89, 1800 / 13.89, 1.0}));
 
     // pixel to um scaling: the images are a bit more than 2000 pixels wide, while the simulation is rougly 200 micrometers
     // so the conversion factor ends up being 13.89
@@ -49,7 +52,7 @@ public class Parameters {
     // Density (cell number)
     //optional call to a default initial set of cells
     @Parameter(names = "-pop", arity = 1, description = "Initial seed population (n_total).")
-    public int initialPopulation = 10;
+    public int initialPopulation = 1;
 
     // A:R ratio
     // for default set of cells, set ratio of two subpopulations
@@ -74,30 +77,30 @@ public class Parameters {
     @Parameter(names="-k_int",arity=1,description = "internal force")
     public static double k_int = 50.0;
     // cell-cell collision force
-    @Parameter(names="-k_cell",arity=1,description = "cell-cell collision force")
-    public static double k_cell = 500.0;
+    @Parameter(names="-k_overlap",arity=1,description = "cell-cell collision force")
+    public static double k_overlap = 500.0;
     // sticking force
     @Parameter(names="-k_stick",arity=1,description = "side-to-side attraction")
     public static double k_sticking = 0.01;
 
-    // sticking range
-    @Parameter(names="-rng_stick",arity=1,description = "max range side-to-side attraction")
-    public static double range_sticking = 5.0;
+
+    // contact threshold (for sticking force)
+    @Parameter(names="-contact_damping",arity=1,description = "contact threshold for sticking interaction")
+    public static double contact_damping = 2.0;
+    // contact range extension (pilus length)
+    @Parameter(names="-contact_rng",arity=1,description = "contact range for pilus interaction")
+    public static double contact_range = 0.25;
 
     // twist
-    @Parameter(names="-twist",arity=1,description = "twist")
-    public static double twist = 0.1;
+    @Parameter(names="-birth_twist",arity=1, description = "twist")
+    public static double birth_twist = 0.25;
     // push
     @Parameter(names="-push",arity=1,description = "push")
     public static double push = 0.05;
-
-    // asymmetric growth threshold
-    @Parameter(names="-l_asym",arity=1,description = "asymmetric growth threshold")
-    public static double L_asym = 3.75;
-    // value of asymmetry
-    @Parameter(names="-asym",arity=1,description = "asymmetry")
-    public static double asymmetry = 0.1;
-    // symmetric growth
-    @Parameter(names="-sym",arity=1,description = "symmetric growth")
-    public static double sym_growth = 0.05;
+    // initial degree of asymmetrical growth
+    @Parameter(names="-init_growth_asym",arity=1,description = "initital asymmetry")
+    public static double init_growth_asym = 0.5;
+    // length scale at which asymmetrical growth stops
+    @Parameter(names="-asymmetry_scale",arity=1,description = "asymmetry scale")
+    public static double asymmetry_scale = 0.75;
 }
