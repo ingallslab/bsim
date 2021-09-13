@@ -2,8 +2,6 @@ package BSimCrossFeeding;
 
 import bsim.BSim;
 import bsim.BSimChemicalField;
-import bsim.capsule.BSimCapsuleBacterium;
-import bsim.draw.BSimDrawer;
 import bsim.draw.BSimP3DDrawer;
 import processing.core.PConstants;
 import processing.core.PGraphics3D;
