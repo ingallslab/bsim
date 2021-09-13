@@ -13,16 +13,15 @@ import javax.vecmath.Vector3d;
  * Defines a wide array of utility functions used throughout BSim.
  */
 public class BSimUtils {
-	
+
 	/**
-	 * Method samples from the normal distribution Z(0,1) 
+	 * Method samples from the normal distribution Z(0,1)
 	 * and scales the returned variable as if it was from normal distribution Z(mean,stdev).
 	 * Author: Petros Mina.
 	 * @param mean Supply mean value as a double.
 	 * @param stdev Supply standard deviation value as a double.
 	 * @return Returns a random variable from the normal distribution Z(mean,stdev).
 	 */
-	
 	public static double sampleNormal(double mean, double stdev) {
 	    
 		final double GaussianNumber  = rng.nextGaussian();
@@ -32,6 +31,13 @@ public class BSimUtils {
 		return scaledVariable;
 			
 		}
+
+	public static double convertmMToMoleculesPerCubicMicron(double concentration_mM) {
+		double moleculesPerCubicMicron;
+		moleculesPerCubicMicron = concentration_mM*6e5; //conversion factor from BSimChemicalField.java
+
+		return moleculesPerCubicMicron;
+	}
 	
 	/** Shared random number generator. */
 	private static Random rng = new Random();
