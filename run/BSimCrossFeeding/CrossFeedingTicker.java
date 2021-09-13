@@ -1,6 +1,6 @@
 package BSimCrossFeeding;
 
-import bsim.BSim;  
+import bsim.BSim;
 import bsim.BSimChemicalField;
 import bsim.BSimTicker;
 import bsim.capsule.BSimCapsuleBacterium;
