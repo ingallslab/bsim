@@ -106,11 +106,20 @@ public class BSimChemicalField {
 	public double getConc(Vector3d v) {
 		int[] b = boxCoords(v);
 		return getConc(b[0],b[1],b[2]);
-	}	
+	}
+	/** Gets the concentration of the field at the position v in mM. */
+	public double getConc_mM(Vector3d v) {
+		int[] b = boxCoords(v);
+		return getConc_mM(b[0],b[1],b[2]);
+	}
+
 	/** Gets the concentration of the field in the box (x,y,z) in molecules/(micron)^3. */
 	public double getConc(int i, int j, int k) {
 		return quantity[i][j][k]/boxVolume;
 	}
+
+	/** Gets the concentration of the field in the box (x,y,z) in mM. */
+	public double getConc_mM(int i, int j, int k) { return quantity[i][j][k]/boxVolume/6e-5; }
 	
 	/** Returns the total quantity of chemical in the field. */
 	public double totalQuantity() {
