@@ -1,53 +1,49 @@
 package BSimCrossFeeding;
 
 import bsim.BSim;
-
 import bsim.BSimChemicalField;
-import bsim.capsule.BSimCapsuleBacterium;
 import bsim.winter2021.Bacterium;
+
 import javax.vecmath.Vector3d;
+import java.util.Random;
 
-import com.beust.jcommander.Parameter;
-
-import java.awt.*;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.*;
-import java.util.List;
-import java.lang.Math;
 /**
  */
 public class CrossFeedingBacterium extends Bacterium {
 	/** Chemical field representing the amino acid the bacteria produces. */
 	protected BSimChemicalField production_field;
-	/** Chemical field representing the antibiotic the bacteria consumes. */
+	/** Chemical field representing the amino acid the bacteria consumes. */
 	protected BSimChemicalField consumption_field;
 	
 	/** Initial growth rate of the bacteria. */
-	final private double initial_growth_mean = 0.01;	
-	final private double initial_growth_stdv = 0.001;
+	final private double initial_growth_mean = 1.23; //um/h
+	final private double initial_growth_stdv = 0.277; //um/h
 	final private double initial_growth_rate;
 	
-	/** Flag for amino acid production (/hr). */
-	private boolean production;			
-	/** Amount of amino acid produced (/hr). */
-	private double productionNum;
+	/** Flag for amino acid production. */
+	private boolean production = true;	//production of amino acid is on by default
+
+	/** Production rate of amino acid (molecules/hr). */
+	private double productionRate = 10.0;
 	
-	/** Amount of amino acid consumed (/hr). */
+	/** Amount of amino acid consumed (molecules/hr). */
 	private double consumptionRate;
-	/** Max amount of amino acid consumed by a bacterium (/hr). */
-	private double consumptionMax;
-	
-	// Constants for Monod Equation
+
     /** Maximum growth rate of the cell (um/hr). */
-    final private double mu_max = 1.3;
+    private double mu_max = 1.3;
+
     /** The "half-velocity constant"; the value of [S] when mu/mu_max = 0.5 (g/dm^3). */
-    final private double K_s = 2.2e-1;//2.2e-5;
-    
+    private double K_s = 2.2e-1;// mM/s for the amino acid consumed
+
     // Constants for yield conversion
-    final double yield_coefficient = 1.0;			// Arbitrary value between 0 and 1
-    double total_bio_mass = 1.0;			
-    
+    final double yield_coefficient = 1.0;			// g biomass per g amino acid consumed
+    double density = 1.0e-12; // density of water in g/um3; required for relating biomass generated from nutrients consumed
+
+    /** Functions to allow setting CrossFeedingBacterium parameters within simulation file */
+    public void setProductionRate(double x) { this.productionRate = x; }
+    public void setMaxGrowthRate(double x) { this.mu_max = x; }
+    public void setKs(double x) { this.K_s = x; }
+
     /** Function you call when you want to make a new bacterium object. */
     public CrossFeedingBacterium(BSim sim, BSimChemicalField production_field, BSimChemicalField consumption_field, Vector3d px1, Vector3d px2){
     	
@@ -58,11 +54,6 @@ public class CrossFeedingBacterium extends Bacterium {
         
         this.production_field = production_field;	
         this.consumption_field = consumption_field;
-        
-        production = true;
-        productionNum = 1e3;
-        consumptionRate = 1.0;//0.8;
-        consumptionMax = 1e3;
         
     	Random bacRng = new Random(); 		// Random number generator
         bacRng.setSeed(50); 				// Initializes random number generator
@@ -81,11 +72,6 @@ public class CrossFeedingBacterium extends Bacterium {
         this.production_field = production_field;
         this.consumption_field = consumption_field;
 
-        production = true;
-        productionNum = 1e3;
-        consumptionRate = 1.0;//0.8;
-        consumptionMax = 1e3;
-
         Random bacRng = new Random(); 		// Random number generator
         bacRng.setSeed(50); 				// Initializes random number generator
         initial_growth_rate = initial_growth_stdv * bacRng.nextGaussian() + initial_growth_mean;
@@ -97,37 +83,29 @@ public class CrossFeedingBacterium extends Bacterium {
     @Override
     public void action() { 						// Runs at every time step
         super.action();
-        
-        // Consumption field decays as it is consumed
+
         if ( consumption_field.getConc(position) > 0 ) {
-        	double consumptionNum = consumption_field.getConc(position) * consumptionRate * sim.getDt();
-        	
-        	// The maximum amount of amino acids able to be consumed by a bacterium
-        	if ( consumptionNum > consumptionMax ) {
-        		consumption_field.addQuantity( position, -consumptionMax );
-        	}
-        	else {
-        		consumption_field.addQuantity( position, -consumptionNum );
-        	}
-        	
-    		// Cell growth rate is dependent on consumption 
-            double growth = (mu_max * sim.getDt()) * ( consumptionNum / ( K_s + consumptionNum ) );
-            total_bio_mass += growth;
-            
-            // Yield conversion
-            double growth_rate = (growth * total_bio_mass) / yield_coefficient;
-            setK_growth(growth_rate);
-            
-            //System.out.println(total_bio_mass);
-            //System.out.println(consumptionNum + " " + growth_rate);
+            //Set cell growth rate
+            double S = consumption_field.getConc_mM(position); // Concentration of subtrate S being consumed (mM)
+            double growth_rate = mu_max * (S/(K_s + S)); // Monod equation
+            setK_growth(growth_rate); //ensure mu_max (and therefore k_growth) has same units as (dt)^-1
+
+            //Compute consumption of amino acid field
+            double elongation_rate = this.L * this.k_growth * (1 - (this.L / this.L_max));
+            double dVdt = Math.PI * Math.pow(this.radius,2) * elongation_rate; // Rate of change in volume, assuming cylindrical geometry
+            consumptionRate = 1/yield_coefficient * density * dVdt; // mass substrate per unit time
+            consumption_field.addQuantity( position, -consumptionRate*sim.getDt() );
+
+        } else {
+            setK_growth(0.0);
         }
-		
-		// Production of amino acid is dependent on nutrient field ( in access )
-        // Production in this simulation is constant
-		if ( isProducing() ) {						
-			production_field.addQuantity(position, productionNum * sim.getDt() );	
-		}
-		
+
+        // Production of amino acid is dependent on nutrient field, which is assumed to be in excess
+        // Production of the amino acid is assumed to be constant
+        if ( isProducing() ) {
+            production_field.addQuantity(position, productionRate * sim.getDt() );
+        }
+
     }
     
     /** Returns the flag for the internal amino acid production of a bacterium. */
