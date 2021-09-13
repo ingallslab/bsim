@@ -8,16 +8,14 @@ import bsim.capsule.Mover;
 import bsim.capsule.RelaxationMoverGrid;
 import bsim.export.BSimLogger;
 import bsim.export.BSimPngExporter;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
-import javax.vecmath.*;
+import javax.vecmath.Vector3d;
+import java.io.File;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
-import java.util.List;
-import java.io.File;
 
 /**
  *
@@ -29,8 +27,8 @@ import java.io.File;
 public class BSimCrossFeeding {
 
     static final double pixel_to_um_ratio = 13.89;
-    final int width_pixels = 700;
-    final int height_pixels = 500;
+    final int width_pixels = 1389; //1389 pixels = 100 um
+    final int height_pixels = 1389;
     final double width_um = width_pixels / pixel_to_um_ratio; // should be kept as constants for cell prof.
     final double height_um = height_pixels / pixel_to_um_ratio; // need to confirm if these values are always used
 
@@ -42,7 +40,7 @@ public class BSimCrossFeeding {
     // @parameter means an optional user-specified value in the command line
     // export mode means output appears
     @Parameter(names = "-export", description = "Enable export mode.")
-    private boolean export = false;
+    private boolean export = true;
 
     @Parameter(names = "-export_path", description = "export location")
     private String export_path = "default";
@@ -64,7 +62,7 @@ public class BSimCrossFeeding {
     // Density (cell number)
     // optional call to a default initial set of cells
     @Parameter(names = "-pop", arity = 1, description = "Initial seed population (n_total).")
-    public int initialPopulation = 2;
+    public int initialPopulation = 10;
 
     // A:R ratio
     // for default set of cells, set ratio of two subpopulations
@@ -86,9 +84,9 @@ public class BSimCrossFeeding {
 
     // Simulation Time
     @Parameter(names="-simt",arity=1,description = "simulation time")
-    public static double sim_time = 6.5;
+    public static double sim_time = 4.0;
     @Parameter(names="-simdt",arity=1,description = "simulation time step")
-    public static double sim_dt = 0.05;
+    public static double sim_dt = 0.005;
     @Parameter(names="-export_time",arity=1,description = "export time")
     public static double export_time = 0.5;// Previously was 10, and simulation time was 100
 
@@ -209,8 +207,10 @@ public class BSimCrossFeeding {
         bacterium.setStickingRange(range_sticking);
         bacterium.setTwist(twist);
         bacterium.setPush(push);
-
         bacterium.setAsym(asymmetry);
+
+        // Assign nutrient production
+
 
         return bacterium;
     }
@@ -261,15 +261,21 @@ public class BSimCrossFeeding {
 		}
 
 		/*********************************************************
-		 * Set up the antibiotic field
+		 * Set up the amino acid fields
 		 */
-		final double c = 7e2;        				// Decrease this to see lower concentrations
-		final double decayRate = 0.0;				// Decay rate of antibiotics
-		final double diffusivity = 2.0;				// (Microns)^2/sec
+		final double c = 20*6e5;        				// Decrease this to see lower concentrations; only used in drawer!
+		final double decayRate = 0.0;				// Decay rate of amino acids
+		final double diffusivity = 7.0e2;		    // (Microns)^2/sec; estimated from Dal Co et al. (2020)
+        final double initialConcentrationA = 0.0;   // mM
+        final double initialConcentrationB = 0.0;   // mM
 
 		final int field_box_num = 50;				// Number of boxes to represent the chemical field
 		final BSimChemicalField amino_acid_A = new BSimChemicalField(sim, new int[]{field_box_num, field_box_num, 1}, diffusivity, decayRate);
 		final BSimChemicalField amino_acid_B = new BSimChemicalField(sim, new int[]{field_box_num, field_box_num, 1}, diffusivity, decayRate);
+
+        //Set initial concentration fields of each amino acid
+        amino_acid_A.setConc(initialConcentrationA); //copied from BSimLacOperon.java
+        amino_acid_B.setConc(initialConcentrationB);
 
         /*********************************************************
          * Create the bacteria
@@ -280,8 +286,11 @@ public class BSimCrossFeeding {
 
         // Gets the location of the file that is currently running
         // Specify output file path
-        String systemPath = new File("").getAbsolutePath()+"\\CrossFeeding";
 
+        String projectDirectory = System.getProperty("user.dir");
+        String systemPath = projectDirectory+"/simulations/BSimCrossFeeding";
+
+        // Each species should be specified in a separate loop -AY
         while ( bacteriaAll.size() < initialPopulation ) {
     		// Create two sub-populations of bacteria objects randomly in space
             CrossFeedingBacterium bacteriumA = createBacterium( sim, amino_acid_A, amino_acid_B );
@@ -302,7 +311,7 @@ public class BSimCrossFeeding {
         /*********************************************************
          * Set up the ticker
          */
-        final int LOG_INTERVAL = 100; // logs data every 100 timesteps
+        final int LOG_INTERVAL = 10; // logs data every X timesteps
         CrossFeedingTicker ticker = new CrossFeedingTicker(sim, bacA, bacB, bacteriaAll, LOG_INTERVAL, bacRng,
         		el_stdv, el_mean, div_stdv, div_mean, amino_acid_A, amino_acid_B);
         ticker.setGrowth(WITH_GROWTH);
@@ -345,7 +354,7 @@ public class BSimCrossFeeding {
                 public void before() {
                     super.before();
                     write("Simulation metadata.");
-                    write("Catie Terrey Fall 2020."); //change name when new person :)
+                    write("Aaron Yip"); //change name when new person :)
                     write("Simulation dimensions: (" + simX + ", " + simY + ", " + simZ + ")");
                     write("Initial population: "+ initialPopulation);
                     write("Ratio " + populationRatio);
@@ -365,6 +374,7 @@ public class BSimCrossFeeding {
             metaLogger.setDt(export_time);			// Set export time step
             sim.addExporter(metaLogger);
 
+            /** Commented out since position.csv outputs the same thing as summary.csv
             BSimLogger posLogger = new BSimLogger(sim, filePath + "position.csv") {
                 DecimalFormat formatter = new DecimalFormat("###.##", DecimalFormatSymbols.getInstance( Locale.ENGLISH ));
 
@@ -401,6 +411,7 @@ public class BSimCrossFeeding {
             };
             posLogger.setDt(export_time);			// set export time step for csv file
             sim.addExporter(posLogger);
+            **/
 
 
             BSimLogger sumLogger = new BSimLogger(sim, filePath + "summary.csv") {
