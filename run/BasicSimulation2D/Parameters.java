@@ -1,5 +1,6 @@
 package BasicSimulation2D;
 
+import bsim.winter2021.Bacterium;
 import com.beust.jcommander.Parameter;
 
 import java.util.ArrayList;
@@ -81,12 +82,16 @@ public class Parameters {
     public static double k_overlap = 500.0;
     // sticking force
     @Parameter(names="-k_stick",arity=1,description = "side-to-side attraction")
-    public static double k_sticking = 0.01;
+    public static double k_sticking = Bacterium.k_sticking;
 
+    @Parameter(names="-k_cell",arity=1,description = "k_cell")
+    public static double k_cell = Bacterium.k_cell;
+    @Parameter(names="-twist",arity=1,description = "twist")
+    public static double twist = Bacterium.twist;
 
     // contact threshold (for sticking force)
-    @Parameter(names="-contact_damping",arity=1,description = "contact threshold for sticking interaction")
-    public static double contact_damping = 2.0;
+    @Parameter(names="-contact_threshold",arity=1,description = "contact threshold for sticking interaction")
+    public static double contact_threshold = 2.0;
     // contact range extension (pilus length)
     @Parameter(names="-contact_rng",arity=1,description = "contact range for pilus interaction")
     public static double contact_range = 0.25;
@@ -98,8 +103,8 @@ public class Parameters {
     @Parameter(names="-push",arity=1,description = "push")
     public static double push = 0.05;
     // initial degree of asymmetrical growth
-    @Parameter(names="-init_growth_asym",arity=1,description = "initital asymmetry")
-    public static double init_growth_asym = 0.5;
+    @Parameter(names="-asymmetry",arity=1,description = "initital asymmetry")
+    public static double asymmetry = 0.5;
     // length scale at which asymmetrical growth stops
     @Parameter(names="-asymmetry_scale",arity=1,description = "asymmetry scale")
     public static double asymmetry_scale = 0.75;
