@@ -76,7 +76,7 @@ public class BSimCapsuleBacterium {
     public static double k_sticking = 0.01/*10.0*/;   		// side to side attraction
     public static double k_wallstick = 0.00;  		// cell to wall attraction (0 right now since walls are leaky)
 
-    // endpoint-to-endpoint ranges within which which these forces act, or (endpoint-to-wall distance)
+    // endpoint-to-endpoint ranges within which these forces act, or (endpoint-to-wall distance)
     public static double range_filial = 0.01; 		// maximum range at which filial forces activate
     public static double range_sticking = 5.0/*0.6, 2.0*/; 	// max range ... sticking forces
     public static double range_wallstick = 0.25; 	// max range ... attractive wall forces
