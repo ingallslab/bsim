@@ -31,14 +31,6 @@ public class BSimUtils {
 		return scaledVariable;
 			
 		}
-
-
-	public static double convertmMToMoleculesPerCubicMicron(double concentration_mM) {
-		double moleculesPerCubicMicron;
-		moleculesPerCubicMicron = concentration_mM*6e5; //conversion factor from BSimChemicalField.java
-
-		return moleculesPerCubicMicron;
-	}
 	
 	/** Shared random number generator. */
 	private static Random rng = new Random();
