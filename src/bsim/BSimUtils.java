@@ -32,6 +32,7 @@ public class BSimUtils {
 			
 		}
 
+
 	public static double convertmMToMoleculesPerCubicMicron(double concentration_mM) {
 		double moleculesPerCubicMicron;
 		moleculesPerCubicMicron = concentration_mM*6e5; //conversion factor from BSimChemicalField.java
