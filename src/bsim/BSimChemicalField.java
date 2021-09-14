@@ -101,6 +101,13 @@ public class BSimChemicalField {
 			for(int j=0;j<boxes[1];j++)
 				for(int k=0;k<boxes[2];k++) quantity[i][j][k] = c*boxVolume;
 	}
+
+	/** Sets the concentration of the field; converts concentration in mM to molecules/um3 */
+	public void setConc_mM(double c) {
+		for(int i=0;i<boxes[0];i++)
+			for(int j=0;j<boxes[1];j++)
+				for(int k=0;k<boxes[2];k++) quantity[i][j][k] = c*boxVolume*6e5;
+	}
 	
 	/** Gets the concentration of the field at the position v in molecules/(micron)^3. */
 	public double getConc(Vector3d v) {
@@ -119,7 +126,7 @@ public class BSimChemicalField {
 	}
 
 	/** Gets the concentration of the field in the box (x,y,z) in mM. */
-	public double getConc_mM(int i, int j, int k) { return quantity[i][j][k]/boxVolume/6e-5; }
+	public double getConc_mM(int i, int j, int k) { return quantity[i][j][k]/boxVolume/6e5; }
 	
 	/** Returns the total quantity of chemical in the field. */
 	public double totalQuantity() {
