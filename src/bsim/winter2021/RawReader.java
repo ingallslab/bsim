@@ -7,6 +7,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * Reads in xy coordinates of cell ends in units of pixels in the form:
+ *
+ * x1cell1,x1cell2,...
+ * y1cell1,y1cell2,...
+ * x2cell1,x2cell2,...
+ * y2cell1,y2cell2,...
+ *
+ * These are then converted into um
+ */
 public class RawReader {
     BufferedReader csvReader;
     final double pixel_to_um_ratio;
