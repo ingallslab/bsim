@@ -17,7 +17,7 @@ public class SimReader {
 
     public SimReader() {
     }
-    
+
     // The csv file is closed after reading
     public ArrayList<double[]> readcsv(String filepath) {
         try {
