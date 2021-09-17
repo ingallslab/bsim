@@ -24,7 +24,7 @@ public class ConjugationBacterium extends Bacterium {
     /**
      * These are the properties of the ConjugatingBacterium that we set
      */
-    private String HGTstatus = ""; //determines whether the cell is donor/transconjugant/recipient; default is recipient
+    public String HGTstatus = ""; //determines whether the cell is donor/transconjugant/recipient; default is recipient
     private double contact_range = 0.0; //the default value is the contact range for recipients
     private double conjugation_frequency = 1.0; //conjugation attempts per some unit time
 
