@@ -1,8 +1,10 @@
 package bsim;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
+import java.util.Vector;
 
 import javax.vecmath.AxisAngle4d;
 import javax.vecmath.Matrix3d;
@@ -13,6 +15,41 @@ import javax.vecmath.Vector3d;
  * Defines a wide array of utility functions used throughout BSim.
  */
 public class BSimUtils {
+
+	/**
+	 * This function initializes a random position for a capsuleBacterium. -AY
+	 *
+	 * @param sim The simulation
+	 * @param elongation_threshold_mean The mean division length threshold for the capsule bacteria
+	 * @return An ArrayList containing [pos1,pos2]
+	 */
+	public static ArrayList<Vector3d> randomPosition(BSim sim, double elongation_threshold_mean) {
+		ArrayList<Vector3d> positions = new ArrayList<Vector3d>();
+		// Random initial positions
+		Vector3d pos1 = new Vector3d(Math.random()*sim.getBound().x,
+				Math.random()*sim.getBound().y,
+				Math.random()*sim.getBound().z);
+
+		double r = elongation_threshold_mean * Math.sqrt(Math.random());
+		double theta = Math.random() * 2 * Math.PI;
+		Vector3d pos2 = new Vector3d(pos1.x + r * Math.cos(theta),
+				pos1.y + r * Math.sin(theta),
+				pos1.z);
+
+		// Check if the random coordinates are within bounds
+		while(pos2.x >= sim.getBound().x || pos2.x <= 0 || pos2.y >= sim.getBound().y || pos2.y <= 0) {
+			pos1 = new Vector3d(Math.random()*sim.getBound().x,
+					Math.random()*sim.getBound().y,
+					Math.random()*sim.getBound().z);
+			pos2 = new Vector3d(pos1.x + r * Math.cos(theta),
+					pos1.y + r * Math.sin(theta),
+					pos1.z);
+		}
+		positions.add(pos1);
+		positions.add(pos2);
+
+		return positions;
+	}
 
 	/**
 	 * Method samples from the normal distribution Z(0,1)
