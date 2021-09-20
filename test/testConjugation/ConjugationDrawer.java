@@ -12,19 +12,16 @@ import java.util.ArrayList;
 public class ConjugationDrawer extends BSimP3DDrawer{
 
     // Bacterium should be a sub-class of BSimCapsuleBacterium
-    final ArrayList<ConjugationBacterium> bacA;
-    final ArrayList<ConjugationBacterium> bacB;
+    final ArrayList<ConjugationBacterium> bac;
     final double simX;
     final double simY;
 
     public ConjugationDrawer(BSim sim, int width, int height,
-    		ArrayList<ConjugationBacterium> bac_to_drawA, ArrayList<ConjugationBacterium> bac_to_drawB) {
+    		ArrayList<ConjugationBacterium> bac_to_draw) {
         super(sim, width, height);
         simX = width/10.0; //dividing makes the image bigger
         simY = height/10.0;
-        bacA = bac_to_drawA;
-        bacB = bac_to_drawB;
-
+        bac = bac_to_draw;
     }
 
     /**
@@ -86,15 +83,15 @@ public class ConjugationDrawer extends BSimP3DDrawer{
         p3d.ambientLight(128, 128, 128);
         p3d.directionalLight(128, 128, 128, 1, 1, -1);
 		
-		// Draw sub-population A
-		for(ConjugationBacterium b : bacA) {
-			draw(b, Color.GREEN );
-		}	
-		
-		// Draw sub-population B
-		for(ConjugationBacterium b : bacB) {
-			draw(b, Color.ORANGE );
-		}	
-
+		// Draw sub populations
+		for(ConjugationBacterium b : bac) {
+            if (b.HGTstatus.equals("donor")) {
+                draw(b, Color.RED );
+            } else if (b.HGTstatus.equals("transconjugant")) {
+                draw(b, Color.YELLOW );
+            } else {
+                draw(b, Color.GREEN );
+            }
+		}
     }
 }

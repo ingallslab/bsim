@@ -8,6 +8,8 @@ import bsim.capsule.RelaxationMoverGrid;
 import bsim.conjugation.*;
 import bsim.export.BSimLogger;
 import bsim.export.BSimPngExporter;
+import bsim.winter2021.Bacterium;
+import bsim.winter2021.RawReader;
 import bsim.winter2021.SimReader;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -20,16 +22,18 @@ import java.util.*;
 
 /**
  *
- * This class simulates cross feeding.
- * Two populations of bacteria will produce amino acids for the other population to consume and grow.
- * The growth rate of bacteria depends on the rate of amino acid consumption.
+ * This class simulates conjugation between two bacteria
+ * Currently, conjugation will occur if physical contact is made between a donor and recipient
  *
  */
 public class testConjugation {
 
     private static String executionPath = testConjugation.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+    private static String projectPath = System.getProperty("user.dir");
+    private static String pathToSimulation = projectPath+"/test/"+"testConjugation/";
+
     @Parameter(names = "-input_data", description = "path to input data")
-    private static String input_data = executionPath+"positions.csv";
+    private static String input_data = pathToSimulation+"positions.csv";
 
     // Boundaries
     // Boolean flag: specifies whether any walls are needed
@@ -39,10 +43,10 @@ public class testConjugation {
     // @parameter means an optional user-specified value in the command line
     // export mode means output appears
     @Parameter(names = "-export", description = "Enable export mode.")
-    private boolean export = false;
+    private boolean export = true;
 
     @Parameter(names = "-export_path", description = "export location")
-    private String export_path = "default";
+    private String export_path = pathToSimulation+"/results";
 
     @Parameter(names = "-grow", description = "Enable bacteria growth.")
     private boolean WITH_GROWTH = false;
@@ -132,16 +136,12 @@ public class testConjugation {
 
     /** Track all of the bacteria in the simulation, for use of common methods etc.
     A general class, no sub-population specifics. */
+    final ArrayList<ConjugationBacterium> bac = new ArrayList();
     final ArrayList<BSimCapsuleBacterium> bacteriaAll = new ArrayList();
 
     // Set up stuff for growth. Placeholders for the recently born and dead
-    final ArrayList<ConjugationBacterium> donorBac_born = new ArrayList();
-    final ArrayList<ConjugationBacterium> transconjugantBac_born = new ArrayList();
-    final ArrayList<ConjugationBacterium> recipientBac_born = new ArrayList();
-
-    final ArrayList<ConjugationBacterium> donorBac_dead = new ArrayList();
-    final ArrayList<ConjugationBacterium> transconjugantBac_dead = new ArrayList();
-    final ArrayList<ConjugationBacterium> recipientBac_dead = new ArrayList();
+    final ArrayList<ConjugationBacterium> bac_born = new ArrayList();
+    final ArrayList<ConjugationBacterium> bac_dead = new ArrayList();
 
     /** Main Function.
      * This is the very first function that runs in the simulation.
@@ -160,39 +160,41 @@ public class testConjugation {
         bsim_ex.run();
     }
 
-    /** Creates a new Bacterium object. */
-    public static ConjugationBacterium createBacterium(BSim sim, String HGTstatus) {
+    public static ConjugationBacterium createBacterium(BSim sim, Vector3d x1, Vector3d x2, String HGTstatus, double growthRate, double lengthThreshold) {
+        // creates a new bacterium object whose endpoints correspond to the above data
+        //Bacterium bacterium = new Bacterium(sim, x1, x2, origin, -1);
+        ConjugationBacterium bacterium = new ConjugationBacterium(sim, x1, x2, HGTstatus);
+
+        // determine the vector between the endpoints
+        // if the data suggests that a bacterium is larger than L_max, that bacterium will instead
+        // be initialized with length 1. Otherwise, we set the length in the following if statement
+        // Earlier they were all initialised to length 1.
+        Vector3d dispx1x2 = new Vector3d();
+        dispx1x2.sub(x2, x1); // sub is subtract
+        double length = dispx1x2.length(); // determined.
+        if (length < bacterium.L_max) {
+            bacterium.initialise(length, x1, x2); // redundant to record length, but ok.
+        }
+
+        // assign the growth rate and division length to the bacterium
+        bacterium.setK_growth(growthRate);
+        bacterium.setElongationThreshold(lengthThreshold);
+
+        return bacterium;
+    }
+
+    /** Creates a new Bacterium object with random position*/
+    public static ConjugationBacterium createRandomBacterium(BSim sim, String HGTstatus) {
     	Random bacRng = new Random(); 		// Random number generator
         bacRng.setSeed(50); 				// Initializes random number generator
 
-        String systemPath = new File("").getAbsolutePath();
+        /**
+         * Use this to initialize bacteria from random positions
+         */
+        ArrayList<Vector3d> positions = BSimUtils.randomPosition(sim, div_mean);
+        Vector3d pos1 = positions.get(0);
+        Vector3d pos2 = positions.get(1);
 
-        // TODO: HANDLE DEFAULT INPUT DATA FILE
-        String initial_data_path = input_data;
-        SimReader reader = new SimReader();
-
-        // Random initial positions
-        Vector3d pos1 = new Vector3d(Math.random()*sim.getBound().x,
-				Math.random()*sim.getBound().y,
-				Math.random()*sim.getBound().z);
-
-        double r = div_mean * Math.sqrt(Math.random());
-        double theta = Math.random() * 2 * Math.PI;
-        Vector3d pos2 = new Vector3d(pos1.x + r * Math.cos(theta),
-				pos1.y + r * Math.sin(theta),
-				pos1.z);
-
-        // Check if the random coordinates are within bounds
-        while(pos2.x >= sim.getBound().x || pos2.x <= 0 || pos2.y >= sim.getBound().y || pos2.y <= 0) {
-        	pos1 = new Vector3d(Math.random()*sim.getBound().x,
-    				Math.random()*sim.getBound().y,
-    				Math.random()*sim.getBound().z);
-        	pos2 = new Vector3d(pos1.x + r * Math.cos(theta),
-    				pos1.y + r * Math.sin(theta),
-    				pos1.z);
-        }
-
-        // Creates a new bacterium object whose endpoints correspond to the above data
         ConjugationBacterium bacterium = new ConjugationBacterium(sim, pos1, pos2, HGTstatus);
 
         // Determine the vector between the endpoints
@@ -269,19 +271,28 @@ public class testConjugation {
 
         // Gets the location of the file that is currently running
         // Specify output file path
-        String systemPath = executionPath+"/results";
+        String systemPath = executionPath+"/results"; //BS...
 
-        // Each species should be specified in a separate loop -AY
-        while ( bacteriaAll.size() < initialPopulation ) {
-    		// Create two sub-populations of bacteria objects randomly in space
-            ConjugationBacterium donorBacterium = createBacterium(sim,"donor");
-            ConjugationBacterium nondonorBacterium = createBacterium(sim,"");
+        //String systemPath = new File("").getAbsolutePath();
 
-    		// Adds the newly created bacterium to our lists for tracking purposes
-    		donorBac.add(donorBacterium); 				// For separate subpopulations
-    		recipientBac.add(nondonorBacterium); 				// For separate subpopulations
-    		bacteriaAll.add(donorBacterium);		// For all cells
-    		bacteriaAll.add(nondonorBacterium);		// For all cells
+        // TODO: HANDLE DEFAULT INPUT DATA FILE
+        String initial_data_path = input_data;
+        SimReader reader = new SimReader();
+
+        ArrayList<double[]> cell_endpoints = reader.readcsv(initial_data_path);
+        for(int i = 0; i < cell_endpoints.size(); i++) {//double[] cell : cell_endpoints) {
+            double[] cell = cell_endpoints.get(i);
+            // initializes the endpoints of each bacterium from the array of endpoints; z-dimension is 0.5
+            Vector3d x1 = new Vector3d(cell[0], cell[1], 0.5);
+            Vector3d x2 = new Vector3d(cell[2], cell[3], 0.5);
+            // assigns a growth rate and a division length to bacterium according to a normal distribution
+            // assigns a growth rate and a division length to bacterium according to a normal distribution
+            double growthRate = el_stdv * bacRng.nextGaussian() + el_mean;
+            double divThreshold = div_stdv * bacRng.nextGaussian() + div_mean;
+            ConjugationBacterium bac0 = createBacterium(sim, x1, x2, "", growthRate, divThreshold);
+            // adds the newly created bacterium to our lists for tracking purposes
+            bac.add(bac0); // for separate subpopulations
+            bacteriaAll.add(bac0);  // for all cells
         }
 
         final Mover mover;
@@ -291,7 +302,7 @@ public class testConjugation {
          * Set up the ticker
          */
         final int LOG_INTERVAL = 1; // logs data every X timesteps
-        ConjugationTicker ticker = new ConjugationTicker(sim, donorBac, transconjugantBac, recipientBac, bacteriaAll, LOG_INTERVAL, bacRng,
+        ConjugationTicker ticker = new ConjugationTicker(sim, bacteriaAll, bac, LOG_INTERVAL, bacRng,
         		el_stdv, el_mean, div_stdv, div_mean);
         ticker.setGrowth(WITH_GROWTH);
         sim.setTicker(ticker);
@@ -302,7 +313,7 @@ public class testConjugation {
         int drawerWidth = 800;
         int drawerHeight = 800;
         ConjugationDrawer drawer = new ConjugationDrawer(sim, drawerWidth, drawerHeight,
-        		donorBac, recipientBac);
+        		bac);
         sim.setDrawer(drawer);
 
         /*********************************************************
@@ -367,39 +378,7 @@ public class testConjugation {
                 public void during() {
                     String buffer = new String();
                     buffer = "";
-                    for(ConjugationBacterium b : donorBac) {
-                        buffer += sim.getFormattedTime()+","+b.id
-                                + "," + b.HGTstatus
-                                + "," + b.x1.x
-                                + "," + b.x1.y
-                                + "," + b.x1.z
-                                + "," + b.x2.x
-                                + "," + b.x2.y
-                                + "," + b.x2.z
-                                + "," + b.position.x
-                                + "," + b.position.y
-                                + "," + b.position.z
-                                + "," + b.direction()
-                                + "\n";
-                    }
-
-                    for(ConjugationBacterium b : recipientBac) {
-                        buffer += sim.getFormattedTime()+","+b.id
-                                + "," + b.HGTstatus
-                                + "," + b.x1.x
-                                + "," + b.x1.y
-                                + "," + b.x1.z
-                                + "," + b.x2.x
-                                + "," + b.x2.y
-                                + "," + b.x2.z
-                                + "," + b.position.x
-                                + "," + b.position.y
-                                + "," + b.position.z
-                                + "," + b.direction()
-                                + "\n";
-                    }
-
-                    for(ConjugationBacterium b : transconjugantBac) {
+                    for(ConjugationBacterium b : bac) {
                         buffer += sim.getFormattedTime()+","+b.id
                                 + "," + b.HGTstatus
                                 + "," + b.x1.x

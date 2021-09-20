@@ -26,22 +26,16 @@ public class ConjugationTicker extends BSimTicker {
     //elongation threshold mean
     public final double length_mean;
 
-    final ArrayList<ConjugationBacterium> donorBac;
-    final ArrayList<ConjugationBacterium> transconjugantBac;
-    final ArrayList<ConjugationBacterium> recipientBac;
+
     final ArrayList<BSimCapsuleBacterium> bacteriaAll;
-    final ArrayList<ConjugationBacterium> donorBac_born;
-    final ArrayList<ConjugationBacterium> transconjugantBac_born;
-    final ArrayList<ConjugationBacterium> recipientBac_born;
-    final ArrayList<ConjugationBacterium> donorBac_dead;
-    final ArrayList<ConjugationBacterium> transconjugantBac_dead;
-    final ArrayList<ConjugationBacterium> recipientBac_dead;
+    final ArrayList<ConjugationBacterium> bac;
+    final ArrayList<ConjugationBacterium> bac_born;
+    final ArrayList<ConjugationBacterium> bac_dead;
 
     // internal machinery - don't worry about this
     final Mover mover;
 
-    public ConjugationTicker(BSim sim, ArrayList<ConjugationBacterium> donorBac, ArrayList<ConjugationBacterium> transconjugantBac, ArrayList<ConjugationBacterium> recipientBac,
-    		ArrayList<BSimCapsuleBacterium> bacteriaAll, int LOG_INTERVAL, Random bacRng, 
+    public ConjugationTicker(BSim sim, ArrayList<BSimCapsuleBacterium> bacteriaAll, ArrayList<ConjugationBacterium> bac, int LOG_INTERVAL, Random bacRng,
     		double growth_stdv, double growth_mean, double length_stdv, double length_mean) {
         this.sim = sim;
         this.LOG_INTERVAL = LOG_INTERVAL;
@@ -51,16 +45,10 @@ public class ConjugationTicker extends BSimTicker {
         this.length_stdv = length_stdv;
         this.length_mean = length_mean;
 
-        this.donorBac = donorBac;
-        this.transconjugantBac = transconjugantBac;
-        this.recipientBac = recipientBac;
         this.bacteriaAll = bacteriaAll;
-        donorBac_born = new ArrayList();
-        transconjugantBac_born = new ArrayList();
-        recipientBac_born = new ArrayList();
-        donorBac_dead = new ArrayList();
-        transconjugantBac_dead = new ArrayList();
-        recipientBac_dead = new ArrayList();
+        this.bac = bac;
+        bac_born = new ArrayList();
+        bac_dead = new ArrayList();
         mover = new RelaxationMoverGrid(bacteriaAll, sim);
     }
     
@@ -129,35 +117,36 @@ public class ConjugationTicker extends BSimTicker {
     @Override
     public void tick() {
         // increase lifetimes of cells
-        for (ConjugationBacterium b : donorBac) {
-            b.lifetime++;
-        }
-        for (ConjugationBacterium b : transconjugantBac) {
-            b.lifetime++;
-        }
-        for (ConjugationBacterium b : recipientBac) {
+        for (ConjugationBacterium b : bac) {
             b.lifetime++;
         }
 
+        /********************************************** Collision detection + conjugation */
+        //Loop over all pairs of bacteria (not efficient!) as in BSimTutorial
         //More efficient would be a KdTree search with a range of the bounding box. Eventually, it will be good to do this anyways to get other relationships related to neighbours.
-        //TODO: see the BSimTicker in BSimTutorial.java for an example of how they detect collisions! Implement here
-/*        for(int i = 1; i < bacteria.size(); i++) {
-            for(int j = i+1; j < bacteria.size(); j++) {
-                bacteria.get(i).interaction(bacteria.get(j));
+        boolean collision; //flag for determining if a pair of bacteria are colliding
+
+        long startTimeAction = System.nanoTime();
+
+        for(int i = 1; i < bac.size(); i++) {
+            for(int j = i+1; j < bac.size(); j++) {
+                collision = bac.get(i).isColliding(bac.get(j)); //get flag for collision
+                if (collision == true) {
+                    bac.get(i).conjugate(bac.get(j)); //conjugate to neighbour
+                }
             }
         }
 
-        // Each bacterium performs its action and updates its position
-        for(BSimTutorialBacterium b : bacteria) {
-            b.action();
-            b.updatePosition();
-        }*/
+        long endTimeAction = System.nanoTime();
+        if ((sim.getTimestep() % LOG_INTERVAL) == 0) {
+            System.out.println("Collision detection and conjugation for " + bacteriaAll.size()  + " took " + (endTimeAction - startTimeAction) / 1e6 + " ms.");
+        }
 
         /**
          * Another implementation... from IteratorMover.java
          * I believe this one prevents double-counting pairs, so will need to update the conjugation condition in ConjugationBacterium to include donor-recipient
+         * I will to make sure I have a list of allBacteria of class ConjugationBacterium
          */
-
 /*        // Interaction
         int j = 1;
         for (BSimCapsuleBacterium b1 : allBacteria) {
@@ -170,7 +159,7 @@ public class ConjugationTicker extends BSimTicker {
 
         /********************************************** Action */
     	
-        long startTimeAction = System.nanoTime(); 	// Wall-clock time, for diagnosing timing
+        startTimeAction = System.nanoTime(); 	// Wall-clock time, for diagnosing timing
 
         // Calculates and stores the midpoint of the cell.
         // Bacteria does action at each time step
@@ -180,7 +169,7 @@ public class ConjugationTicker extends BSimTicker {
         }
 
         // Outputs how long each step took, once every log interval.
-        long endTimeAction = System.nanoTime();
+        endTimeAction = System.nanoTime();
         if((sim.getTimestep() % LOG_INTERVAL) == 0) {
             System.out.println("Action update for " + bacteriaAll.size() + " bacteria took " + (endTimeAction - startTimeAction)/1e6 + " ms.");
         }
@@ -191,9 +180,7 @@ public class ConjugationTicker extends BSimTicker {
             // ********************************************** Growth and division
             startTimeAction = System.nanoTime(); 	// Start action timer
 
-            growBacteria( donorBac, donorBac_born);
-            growBacteria( transconjugantBac, transconjugantBac_born);
-            growBacteria( recipientBac, recipientBac_born );
+            growBacteria(bac, bac_born);
 
             // Prints out information about bacteria when u want it to
             endTimeAction = System.nanoTime();
@@ -214,10 +201,8 @@ public class ConjugationTicker extends BSimTicker {
 
             /********************************************** Boundaries/removal */
             startTimeAction = System.nanoTime();
-            
-            removeBacteria( sim, donorBac, donorBac_dead);
-            removeBacteria( sim, donorBac, transconjugantBac_dead);
-            removeBacteria( sim, recipientBac, recipientBac_dead );
+
+            removeBacteria(sim, bac, bac_dead);
             
             endTimeAction = System.nanoTime();
             if ((sim.getTimestep() % LOG_INTERVAL) == 0) {

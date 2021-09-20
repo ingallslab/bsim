@@ -101,7 +101,7 @@ public class ConjugationBacterium extends Bacterium {
      * @param neighbour_bac is the neighbouring bacterium
      * @return true if the boxes intersect, else false
      */
-    protected boolean isColliding(ConjugationBacterium neighbour_bac) {
+    public boolean isColliding(ConjugationBacterium neighbour_bac) {
         boolean flag; //declare output
 
         /**
