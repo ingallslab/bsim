@@ -49,7 +49,7 @@ public class testConjugation {
     private String export_path = pathToSimulation+"/results";
 
     @Parameter(names = "-grow", description = "Enable bacteria growth.")
-    private boolean WITH_GROWTH = false;
+    private boolean WITH_GROWTH = true;
 
     // Simulation setup parameters. Set dimensions in um
     final double width = 50.0;
@@ -90,11 +90,11 @@ public class testConjugation {
 
     // Simulation Time
     @Parameter(names="-simt",arity=1,description = "simulation time")
-    public static double sim_time = 0.01;
+    public static double sim_time = 5.0;
     @Parameter(names="-simdt",arity=1,description = "simulation time step")
-    public static double sim_dt = 0.005;
+    public static double sim_dt = 0.01;
     @Parameter(names="-export_time",arity=1,description = "export time")
-    public static double export_time = 0.5;// Previously was 10, and simulation time was 100
+    public static double export_time = 0.1;// Previously was 10, and simulation time was 100
 
     // internal force
     @Parameter(names="-k_int",arity=1,description = "internal force")
@@ -162,7 +162,6 @@ public class testConjugation {
 
     public static ConjugationBacterium createBacterium(BSim sim, Vector3d x1, Vector3d x2, String HGTstatus, double growthRate, double lengthThreshold) {
         // creates a new bacterium object whose endpoints correspond to the above data
-        //Bacterium bacterium = new Bacterium(sim, x1, x2, origin, -1);
         ConjugationBacterium bacterium = new ConjugationBacterium(sim, x1, x2, HGTstatus);
 
         // determine the vector between the endpoints
@@ -295,13 +294,15 @@ public class testConjugation {
             bacteriaAll.add(bac0);  // for all cells
         }
 
+        bac.get(1).HGTstatus = "donor";
+
         final Mover mover;
         mover = new RelaxationMoverGrid(bacteriaAll, sim);
 
         /*********************************************************
          * Set up the ticker
          */
-        final int LOG_INTERVAL = 1; // logs data every X timesteps
+        final int LOG_INTERVAL = 10; // logs data every X timesteps
         ConjugationTicker ticker = new ConjugationTicker(sim, bacteriaAll, bac, LOG_INTERVAL, bacRng,
         		el_stdv, el_mean, div_stdv, div_mean);
         ticker.setGrowth(WITH_GROWTH);
