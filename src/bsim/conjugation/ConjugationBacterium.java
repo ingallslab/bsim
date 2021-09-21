@@ -123,7 +123,7 @@ public class ConjugationBacterium extends Bacterium {
                 2 * (neighbour_bac.radius + r_neighbour), neighbour_bac_angle);
 
         //Determine if there is any overlap between the bounding boxes
-        if (RectangleIntersection.rectangle_intersection_perimeter(rectangle_bac, rectangle_neighbour) > 1e-6) {
+        if (RectangleIntersection.rectangle_intersection_perimeter(rectangle_bac, rectangle_neighbour) > 1e-12) {
             flag = true;
         } else {
             flag = false;
