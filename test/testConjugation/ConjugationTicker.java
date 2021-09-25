@@ -128,7 +128,7 @@ public class ConjugationTicker extends BSimTicker {
 
         long startTimeAction = System.nanoTime();
 
-        for(int i = 1; i < bac.size(); i++) {
+        for(int i = 0; i < bac.size(); i++) {
             for(int j = i+1; j < bac.size(); j++) {
                 collision = bac.get(i).isColliding(bac.get(j)); //get flag for collision
                 if (collision == true) {
