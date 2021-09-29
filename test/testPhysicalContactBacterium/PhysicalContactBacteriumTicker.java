@@ -218,13 +218,6 @@ public class PhysicalContactBacteriumTicker extends BSimTicker {
         }
         for (TestPhysicalContactBacterium b : susp_bac) {
             b.lifetime++;
-            
-            //increase toxin time    
-            if(b.isAboveThreshold()==true) {
-            	b.toxintime++; 
-            }else {
-            	b.toxintime=0;
-            }
         }         
         
         
