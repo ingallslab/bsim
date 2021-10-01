@@ -3,6 +3,7 @@ package testPhysicalContactBacterium;
 import bsim.BSim; 
 
 import bsim.BSimChemicalField;
+import bsim.physical.contact.PhysicalContactBacterium;
 import bsim.winter2021.Bacterium;
 import javax.vecmath.Vector3d;
 
@@ -15,7 +16,7 @@ import java.util.*;
  * If the concentration of toxin around a bacteria is greater than a certain threshold, the cell 
  * will start to shrink and die (turns red in the simulation). 
  */
-public class TestPhysicalContactBacterium extends Bacterium {
+public class TestPhysicalContactBacterium extends PhysicalContactBacterium {
 	/** Chemical field representing the toxin the bacteria is resistant to. */
 	protected BSimChemicalField resistant_field;
 	/** Chemical field representing the toxin the bacteria is not resistant to. */
