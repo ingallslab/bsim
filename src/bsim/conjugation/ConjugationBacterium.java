@@ -17,8 +17,8 @@ public class ConjugationBacterium extends Bacterium {
      * Conjugation related parameters.
      */
     final private double conjugation_contact_range = this.radius;
-    final private static double donor_conjugation_frequency = 1.0;
-    final private static double transconjugant_conjugation_frequency = 1.0;
+    final private static double donor_conjugation_frequency = 0.05; //conjugation events per donor per unit time (h)
+    final private static double transconjugant_conjugation_frequency = 0.1; //conjugation events per donor per unit time (h)
     final private static double fitness_cost = 0.0; //fitness cost for carrying conjugating plasmid
 
     /**
@@ -153,12 +153,13 @@ public class ConjugationBacterium extends Bacterium {
      * Sept 17, 2021: eventually, this will need to go through a list of neighbours and randomly pick only one if a conjugation event is successful
      */
     public void conjugate(ConjugationBacterium neighbour_bac) {
-        //double conjugation_probability = this.conjugation_frequency*sim.getDt(); //uniform distribution
-        double conjugation_probability = 1.0; //for now, assume 100% conjugation if donor contacts recipient
+        double conjugation_probability = this.conjugation_frequency*sim.getDt(); //uniform distribution
         if (Math.random() > (1.0 - conjugation_probability) ) {
             if (isColliding(neighbour_bac)) {
                 if ((this.HGTstatus.equals("donor") || this.HGTstatus.equals("transconjugant")) && (neighbour_bac.HGTstatus.equals(""))) {
                     setStatusToTransconjugant(neighbour_bac);
+                } else if (this.HGTstatus.equals("") && (neighbour_bac.HGTstatus.equals("donor") || neighbour_bac.HGTstatus.equals("transconjugant"))) {
+                    setStatusToTransconjugant(this);
                 }
             }
         }
