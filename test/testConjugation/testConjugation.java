@@ -90,7 +90,7 @@ public class testConjugation {
 
     // Simulation Time
     @Parameter(names="-simt",arity=1,description = "simulation time")
-    public static double sim_time = 5.0;
+    public static double sim_time = 6.0;
     @Parameter(names="-simdt",arity=1,description = "simulation time step")
     public static double sim_dt = 0.01;
     @Parameter(names="-export_time",arity=1,description = "export time")
