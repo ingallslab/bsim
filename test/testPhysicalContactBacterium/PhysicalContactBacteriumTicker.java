@@ -32,33 +32,17 @@ public class PhysicalContactBacteriumTicker extends BSimTicker {
     //elongation threshold mean
     public final double length_mean;
 
-    final ArrayList<TestPhysicalContactBacterium> attacker_bac;
-    final ArrayList<TestPhysicalContactBacterium> susp_bac;
+    final ArrayList<TestPhysicalContactBacterium> bacA_bac;
+    final ArrayList<TestPhysicalContactBacterium> bacB_bac;
     final ArrayList<BSimCapsuleBacterium> bacteriaAll;
-    final ArrayList<TestPhysicalContactBacterium> bac_bornAttacker;
-    final ArrayList<TestPhysicalContactBacterium> bac_bornSusp;
-    final ArrayList<TestPhysicalContactBacterium> bac_deadAttacker;
-    final ArrayList<TestPhysicalContactBacterium> bac_deadSusp;
+    final ArrayList<TestPhysicalContactBacterium> bac_bornbacA;
+    final ArrayList<TestPhysicalContactBacterium> bac_bornbacB;
+    final ArrayList<TestPhysicalContactBacterium> bac_deadbacA;
+    final ArrayList<TestPhysicalContactBacterium> bac_deadbacB;
     
     public static ChemicalField toxin;
     
 	// Initial Conditions
-	/** Used to determine the toxin distribution for the simulation. */
-	private int toxin_condition;
-	
-	/** Toxins flow in from the left boundary. */
-	private static final int FLOW_IN = 1;
-	/** Simulation increases uniform distribution of toxin. */
-	private static final int UNIFORM = 2;
-	/** Steady state concentration level. */
-	private double initial_conc = 0;
-    /** How much toxin A increases per hour. */
-    private double toxin_increment_A = 100;
-    /** Delay for toxin A. */
-    private int delayA = 0;
-    /** Delay counter for toxin A. */
-    private int delayCountA = 0;
-
     // For a single screen
     final int MIXED_CONC = 1;
     final int CHECKER_BOARD = 2;
@@ -71,10 +55,9 @@ public class PhysicalContactBacteriumTicker extends BSimTicker {
     // internal machinery - don't worry about this
     final Mover mover;
 
-    public PhysicalContactBacteriumTicker(BSim sim, ArrayList<TestPhysicalContactBacterium> attacker_bac, ArrayList<TestPhysicalContactBacterium> susp_bac,
+    public PhysicalContactBacteriumTicker(BSim sim, ArrayList<TestPhysicalContactBacterium> bacA_bac, ArrayList<TestPhysicalContactBacterium> bacB_bac,
     		ArrayList<BSimCapsuleBacterium> bacteriaAll, int LOG_INTERVAL, Random bacRng, 
-    		double growth_stdv, double growth_mean, double length_stdv, double length_mean,
-    		ChemicalField toxin, int toxin_condition) {
+    		double growth_stdv, double growth_mean, double length_stdv, double length_mean) {
         this.sim = sim;
         this.LOG_INTERVAL = LOG_INTERVAL;
         this.bacRng = bacRng; //random number generator
@@ -82,24 +65,22 @@ public class PhysicalContactBacteriumTicker extends BSimTicker {
         this.growth_mean = growth_mean;
         this.length_stdv = length_stdv;
         this.length_mean = length_mean;
-        this.attacker_bac = attacker_bac;
-        this.susp_bac = susp_bac;
+        this.bacA_bac = bacA_bac;
+        this.bacB_bac = bacB_bac;
         this.bacteriaAll = bacteriaAll;
-        bac_bornAttacker = new ArrayList();
-        bac_bornSusp = new ArrayList();
-        bac_deadAttacker = new ArrayList();
-        bac_deadSusp = new ArrayList();
+        bac_bornbacA = new ArrayList();
+        bac_bornbacB = new ArrayList();
+        bac_deadbacA = new ArrayList();
+        bac_deadbacB = new ArrayList();
         mover = new RelaxationMoverGrid(bacteriaAll, sim);
         
-        PhysicalContactBacteriumTicker.toxin = toxin;
-        this.toxin_condition = toxin_condition;
     }
     
     /** Sets the flag for growth. **/
     public void setGrowth(boolean b) { WITH_GROWTH = b; }
     
     /** Function for bacteria growth activities. */
-    public void growAttacker( ArrayList<TestPhysicalContactBacterium> bac, ArrayList<TestPhysicalContactBacterium> bacBorn ) {
+    public void growbacA( ArrayList<TestPhysicalContactBacterium> bac, ArrayList<TestPhysicalContactBacterium> bacBorn ) {
     	Random bacRng = new Random(); 			// Random number generator
     	bacRng.setSeed(50); 					// Initializes random number generator
     	
@@ -171,28 +152,7 @@ public class PhysicalContactBacteriumTicker extends BSimTicker {
             if ( b.L <= 1 ) {
             	bac_dead.add(b);          	
             }
-        }
-        
-//intersection        
-        for (TestPhysicalContactBacterium b1 : susp_bac) {
-        	for (TestPhysicalContactBacterium b2 : attacker_bac) { 
-                //Determine if there is any overlap between the bounding boxes
-                if (PhysicalContactBacterium.isColliding(b1,b2,0) == true) {                      
-                	b1.contact=1;    	
-                }
-        	}
-    }            
-        
-        
-        for (TestPhysicalContactBacterium b1 : susp_bac) {
-        	if (b1.contact==1) {
-        		//death
-        		b1.setK_growth(0);
-        		//lysis effect
-            	//bac_dead.add(b1);
-            	System.out.print("die"+"\n"); 				
-			}
-        }         
+        }                  
         
         
         bac.removeAll(bac_dead);
@@ -213,15 +173,30 @@ public class PhysicalContactBacteriumTicker extends BSimTicker {
     @Override
     public void tick() {
         // increase lifetimes of cells
-        for (TestPhysicalContactBacterium b : attacker_bac) {
+        for (TestPhysicalContactBacterium b : bacA_bac) {
             b.lifetime++;
         }
-        for (TestPhysicalContactBacterium b : susp_bac) {
+        for (TestPhysicalContactBacterium b : bacB_bac) {
             b.lifetime++;
         }         
         
         
+        /********************************************** Collision */
+        /** If bacterium i from bacterium B type comes in contact with bacterium j from Bacterium A type, its growth rate will be zero.
+         */        
         
+        
+        for (TestPhysicalContactBacterium b1 : bacB_bac) {
+        	for (TestPhysicalContactBacterium b2 : bacA_bac) { 
+                //Determine if there is any overlap between the bounding boxes
+                if (b1.isColliding(b2,0) == true) {                      
+                	b1.setK_growth(0);
+                	System.out.println("Collision detected between bacteria " + b1.id  + " and acteria " + b2.id ); 
+                }
+        	}
+    }         
+
+        /**        
     	
         /********************************************** Action */
     	
@@ -255,8 +230,8 @@ public class PhysicalContactBacteriumTicker extends BSimTicker {
             // ********************************************** Growth and division
             startTimeAction = System.nanoTime(); 	// Start action timer
 
-            growAttacker( attacker_bac, bac_bornAttacker );		// For sub-population A
-            growBacteriaB( susp_bac, bac_bornSusp );		// For sub-population B
+            growbacA( bacA_bac, bac_bornbacA );		// For sub-population A
+            growBacteriaB( bacB_bac, bac_bornbacB );		// For sub-population B
 
             // Prints out information about bacteria when u want it to
             endTimeAction = System.nanoTime();
@@ -278,8 +253,8 @@ public class PhysicalContactBacteriumTicker extends BSimTicker {
             /********************************************** Boundaries/removal */
             startTimeAction = System.nanoTime();
             
-            removeBacteria( sim, attacker_bac, bac_deadAttacker );		// For sub-population A
-            removeBacteria( sim, susp_bac, bac_deadSusp );		// For sub-population B
+            removeBacteria( sim, bacA_bac, bac_deadbacA );		// For sub-population A
+            removeBacteria( sim, bacB_bac, bac_deadbacB );		// For sub-population B
           
             
             endTimeAction = System.nanoTime();
