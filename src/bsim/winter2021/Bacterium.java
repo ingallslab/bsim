@@ -14,9 +14,7 @@ public class Bacterium extends BSimCapsuleBacterium {
     // TODO: lineage tree structure can be removed to avoid redundancy
     public final long origin_id;
     public long parent_id;
-    public int lifetime;
-    public int toxintime;   
-    public int contact;       
+    public int lifetime; 
 
     // Age related to the specific end of a bacterium. Each end increments its
     // age after division.
@@ -52,9 +50,7 @@ public class Bacterium extends BSimCapsuleBacterium {
         super(sim, px1, px2);
         this.origin_id = id;
         this.parent_id = -1;
-        lifetime = 0;
-        toxintime=0;
-        contact=0;        
+        lifetime = 0;      
         x1_age = 0;
         x2_age = 0;
         generation = 0;
@@ -72,9 +68,7 @@ public class Bacterium extends BSimCapsuleBacterium {
         super(sim, px1, px2);
         this.origin_id = origin_id;
         this.parent_id = parent_id;
-        lifetime = 0;
-        toxintime=0;
-        contact=0;        
+        lifetime = 0;       
         x1_age = 0;
         x2_age = 0;
         generation = 0;
@@ -223,9 +217,7 @@ public class Bacterium extends BSimCapsuleBacterium {
         child.x1_age=0;
 
         this.parent_id = this.id;
-        this.lifetime = 0;
-        this.toxintime = 0;      
-        this.contact= 0;              
+        this.lifetime = 0;            
         // increment the generation (age) of cell every time it divides
 
         // this.initialise(L1, this.x1, x2_new); // for symmetric growth
