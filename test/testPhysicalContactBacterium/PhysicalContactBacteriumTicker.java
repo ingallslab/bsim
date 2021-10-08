@@ -40,7 +40,6 @@ public class PhysicalContactBacteriumTicker extends BSimTicker {
     final ArrayList<TestPhysicalContactBacterium> bac_deadbacA;
     final ArrayList<TestPhysicalContactBacterium> bac_deadbacB;
     
-    public static ChemicalField toxin;
     
 	// Initial Conditions
     // For a single screen
@@ -191,7 +190,7 @@ public class PhysicalContactBacteriumTicker extends BSimTicker {
                 //Determine if there is any overlap between the bounding boxes
                 if (b1.isColliding(b2,0) == true) {                      
                 	b1.setK_growth(0);
-                	System.out.println("Collision detected between bacteria " + b1.id  + " and acteria " + b2.id ); 
+                	System.out.println("Collision detected between bacteria " + b1.id  + " and bacteria " + b2.id ); 
                 }
         	}
     }         
