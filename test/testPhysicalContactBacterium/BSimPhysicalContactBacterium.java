@@ -24,15 +24,15 @@ public class BSimPhysicalContactBacterium {
 
 
     static final double pixel_to_um_ratio = 13.89;
-    final int width_pixels =1200;
-    final int height_pixels = 800;
+    final int width_pixels = 1200;
+    final int height_pixels = 1000;
     final double width_um = width_pixels / pixel_to_um_ratio; // should be kept as constants for cell prof.
     final double height_um = height_pixels / pixel_to_um_ratio; // need to confirm if these values are always used
 
     /** Width of the simulation window. */
     private final int window_width =1200;
     /** Height of the simulation window. */
-    private final int window_height = 600;
+    private final int window_height = 800;
 
 	// Initial Conditions
     /** SINGLE_SCREEN is used to select the visualization of toxin fields in a single simulation box. **/
@@ -52,10 +52,13 @@ public class BSimPhysicalContactBacterium {
     // @parameter means an optional user-specified value in the command line
     // export mode means output appears
     @Parameter(names = "-export", description = "Enable export mode.")
-    private boolean export = false;
+    private boolean export = true;
 
+    private static String projectPath = System.getProperty("user.dir");
+    private static String pathToSimulation = projectPath+"/test/"+"testPhysicalContactBacterium/";    
+    
     @Parameter(names = "-export_path", description = "export location")
-    private String export_path = "";
+    private String export_path = pathToSimulation+"/PhysicalContactBacteriumResults";
 
     // Simulation setup parameters. Set dimensions in um
     @Parameter(names = "-dim", arity = 3, description = "The dimensions (x, y, z) of simulation environment (um).")
@@ -92,7 +95,7 @@ public class BSimPhysicalContactBacterium {
 
     // Simulation Time
     @Parameter(names="-simt",arity=1,description = "simulation time")
-    public static double sim_time = 7;
+    public static double sim_time = 5;
     @Parameter(names="-simdt",arity=1,description = "simulation time step")
     public static double sim_dt = 0.05;
     @Parameter(names="-export_time",arity=1,description = "export time")
