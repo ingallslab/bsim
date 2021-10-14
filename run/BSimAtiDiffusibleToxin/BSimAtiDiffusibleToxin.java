@@ -19,40 +19,24 @@ import java.util.*;
 import java.util.List;
 import java.io.File;
 
-/**
- *
- * This class simulates cross-protection mutualism in an environment with two toxins.
- * If the density of toxin around a bacteria is above a certain threshold, the bacteria
- * will stop growing and eventually die.
- * Each bacteria may decay the toxin field it is resistant to.
- * If the two bacteria populations are close together, they should survive. If they are far apart,
- * the populations should eventually die.
- * The growth rate of the bacteria is dependent on the concentration of toxins surrounding it.
- *
- */
 public class BSimAtiDiffusibleToxin {
 
-    /** Flag to draw fields on two separate simulation screens. */
-    private static final boolean TWO_SCREENS = false;
-
     static final double pixel_to_um_ratio = 13.89;
-    final int width_pixels = TWO_SCREENS? 1200 : 1000;
-    final int height_pixels = 800;
+    final int width_pixels = 1200;
+    final int height_pixels = 1000;
     final double width_um = width_pixels / pixel_to_um_ratio; // should be kept as constants for cell prof.
     final double height_um = height_pixels / pixel_to_um_ratio; // need to confirm if these values are always used
 
     /** Width of the simulation window. */
-    private final int window_width = TWO_SCREENS ? 1200 : 800;
+    private final int window_width =1200;
     /** Height of the simulation window. */
-    private final int window_height = 600;
+    private final int window_height = 800;
 
 	// Initial Conditions
 	/** toxin_condition is used to determine the toxin distribution for the simulation. */
 	private int toxin_condition = 1;
 	/** Toxins flow in from the left boundary. */
 	private static final int FLOW_IN = 1;
-	/** Uniform distribution of toxin. */
-	private static final int UNIFORM = 2;
 	/** Steady state concentration level. */
 	private double initial_conc = 310; //310
 
@@ -75,8 +59,11 @@ public class BSimAtiDiffusibleToxin {
     @Parameter(names = "-export", description = "Enable export mode.")
     private boolean export = true;
 
+    private static String projectPath = System.getProperty("user.dir");
+    private static String pathToSimulation = projectPath+"/run/"+"BSimAtiDiffusibleToxin/";    
+    
     @Parameter(names = "-export_path", description = "export location")
-    private String export_path = "/home/alireza/Desktop/AtiDiffusibleToxinResults";
+    private String export_path = pathToSimulation+"/BSimAtiDiffusibleToxinResults";
 
     // Simulation setup parameters. Set dimensions in um
     @Parameter(names = "-dim", arity = 3, description = "The dimensions (x, y, z) of simulation environment (um).")
@@ -113,7 +100,7 @@ public class BSimAtiDiffusibleToxin {
 
     // Simulation Time
     @Parameter(names="-simt",arity=1,description = "simulation time")
-    public static double sim_time = 7;
+    public static double sim_time = 5;
     @Parameter(names="-simdt",arity=1,description = "simulation time step")
     public static double sim_dt = 0.05;
     @Parameter(names="-export_time",arity=1,description = "export time")
@@ -287,13 +274,7 @@ public class BSimAtiDiffusibleToxin {
 
 		final int field_box_num = 50;				// Number of boxes to represent the chemical field
 		final ChemicalField toxin = new ChemicalField(sim, new int[]{field_box_num, field_box_num, 1}, diffusivity, decayRate);
-
-
-		if ( toxin_condition == UNIFORM ) {
-			fixedBounds = false;
-			toxin.linearGradient(0, initial_conc, initial_conc);
-		}
-
+		
         // Leaky -> bacteria can escape from sides of six faces of the box.
 		// Only usable if fixedbounds allows it
 		// Set a closed or open boundary for toxin diffusion
@@ -350,7 +331,7 @@ public class BSimAtiDiffusibleToxin {
          * Set up the drawer
          */
         AtiDiffusibleToxinDrawer drawer = new AtiDiffusibleToxinDrawer(sim, width_um, height_um, window_width, window_height,
-        		attacker_bac, susp_bac, toxin,c, TWO_SCREENS, SINGLE_SCREEN);
+        		attacker_bac, susp_bac, toxin,c, SINGLE_SCREEN);
         sim.setDrawer(drawer);
 
         if(export) {
