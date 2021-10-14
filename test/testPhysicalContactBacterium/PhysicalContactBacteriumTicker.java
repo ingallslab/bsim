@@ -40,7 +40,6 @@ public class PhysicalContactBacteriumTicker extends BSimTicker {
     final ArrayList<TestPhysicalContactBacterium> bac_deadbacA;
     final ArrayList<TestPhysicalContactBacterium> bac_deadbacB;
     
-    
 	// Initial Conditions
     // For a single screen
     final int MIXED_CONC = 1;
