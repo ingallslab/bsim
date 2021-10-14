@@ -15,6 +15,13 @@ module load opencv
 
 
 export BSIM_DIR=$PWD
-alias bsim-build='ant -f $BSIM_HOME/bsim-build-tree.xml'
+alias bsim-build='ant -f $BSIM_DIR/bsim-build-tree.xml'
 
-echo "Done."
+# Load the python libraries and packages needed by ABC computations
+# Should be stored in /path/to/bsim-hpc-package/python-env.sh 
+if [[ ${HPC_BSIM+x} ]]; then
+  source $HPC_BSIM/python-env.sh
+else
+  echo -e "Please install bsim-hpc-package (https://github.com/ingallslab/bsim-hpc-package) if you want to perform ABC parameter inference with BSim.\n"
+
+echo -e "Done.\n"
