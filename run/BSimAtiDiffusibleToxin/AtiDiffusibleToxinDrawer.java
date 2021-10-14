@@ -24,8 +24,6 @@ public class AtiDiffusibleToxinDrawer extends BSimP3DDrawer{
     public static ChemicalField toxin;
     public static double c; 
     
-    /** Flag to draw fields on two separate simulation screens. */
-    final boolean TWO_SCREENS;
 	/** Steady state concentration level. */
 	private double initial_conc = 1010;
     
@@ -36,7 +34,7 @@ public class AtiDiffusibleToxinDrawer extends BSimP3DDrawer{
     
     public AtiDiffusibleToxinDrawer(BSim sim, double simX, double simY, int window_width, int window_height,
     		ArrayList<AtiDiffusibleToxinBacterium> bac_to_drawA, ArrayList<AtiDiffusibleToxinBacterium> bac_to_drawB,
-    		ChemicalField toxin,double c, boolean TWO_SCREENS, int SINGLE_SCREEN) {
+    		ChemicalField toxin,double c,int SINGLE_SCREEN) {
         super(sim, window_width, window_height);
         this.simX = simX;
         this.simY = simY;
@@ -47,7 +45,6 @@ public class AtiDiffusibleToxinDrawer extends BSimP3DDrawer{
         
         AtiDiffusibleToxinDrawer.toxin = toxin;
         AtiDiffusibleToxinDrawer.c = c;
-        this.TWO_SCREENS = TWO_SCREENS;
         this.SINGLE_SCREEN = SINGLE_SCREEN;
     }
 
@@ -273,40 +270,17 @@ public class AtiDiffusibleToxinDrawer extends BSimP3DDrawer{
         p3d.noStroke();
         p3d.background(255, 255,255);
         
-        // Draw two simulation boxes if two screens are selected
-        if ( TWO_SCREENS ) {
-        	
-        	// Apply light settings
-            lights(p3d);
-        	
-            // Draw simulation with first field
-            p3d.pushMatrix();
-            p3d.translate((float) -45, 0, 0);
-            scene(p3d, toxin, Color.MAGENTA);
-            boundaries();
-            time();
-            p3d.popMatrix();
-
-            // Draw reference
-            drawSingleFieldRef(-45, 60, 720, 3, Color.MAGENTA, Color.WHITE);
-            drawLabel(65, (int) (window_height - 55), initial_conc, 0);
-            drawSingleFieldRef(45, 60, 720, 3, Color.BLUE.brighter(), Color.WHITE);
-            drawLabel(614, (int) (window_height - 55), initial_conc, 0);
-            
-        }
         // Draw only one simulation box
-        else {
             scene(p3d);
             boundaries();
             if ( SINGLE_SCREEN == CHECKER_BOARD ) {
-            	legend( Color.GREEN, "Attacker", new int [] {-18, 0, 3, 3}, 47, 113 );
-            	legend( Color.CYAN, "Susp", new int [] {-18, 6, 3, 3}, 57, 157 );
+            	legend( Color.MAGENTA, "Attacker", new int [] {-8, 0, 3, 3}, 57, 130 );
+            	legend( Color.BLUE, "Susceptible", new int [] {-8, 6, 3, 3}, 57, 175 );
             }
             else if ( SINGLE_SCREEN == MIXED_CONC ) {
             	concDifferenceRef(-15, 4, 3, 525/*2.5f*/, 100, 50, "Field A");
             }
             time();
-        }
 
         p3d.endDraw();
         g.drawImage(p3d.image, 0,0, null);
