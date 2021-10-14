@@ -23,5 +23,7 @@ if [[ ${HPC_BSIM+x} ]]; then
   source $HPC_BSIM/python-env.sh
 else
   echo -e "Please install bsim-hpc-package (https://github.com/ingallslab/bsim-hpc-package) if you want to perform ABC parameter inference with BSim.\n"
+fi
+
 
 echo -e "Done.\n"
