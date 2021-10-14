@@ -51,8 +51,8 @@ public class AtiDiffusibleToxinTicker extends BSimTicker {
     final int CHECKER_BOARD = 2;
     int SINGLE_SCREEN = 2;
     
-    /** Defines the progress of the chemical field flowing through the boundary on the y-axis. */
-    int endpoint_y = 0;
+    /** Defines the progress of the chemical field flowing through the boundary on the x&y-axis. */
+    int endpoint = 0;
     int field_box_num = 50;
 
     // internal machinery - don't worry about this
@@ -116,31 +116,30 @@ public class AtiDiffusibleToxinTicker extends BSimTicker {
         
         
         /** Allow the flow of toxins through a boundary. */
+        /**toxin flows is depends on attacker growth. */
         // State enabled where toxin flows in through a boundary
-        if ( toxin_condition == FLOW_IN ) {
         		final double conc = 50; 
-            	if ( endpoint_y < field_box_num ) {
+            	if ( endpoint < field_box_num ) {
 	                for (AtiDiffusibleToxinBacterium b : attacker_bac) {
 	                	Random rnd = new Random(); 		// Random number generator
 	                    rnd.setSeed(50); 				// Initializes random number generator
-	    	                	for ( int x = (int)Math.min(b.x1.x,b.x2.x); x < (int)Math.max(b.x1.x,b.x2.x); x ++ ) {             		
-	    	                		for ( int y = (int)Math.min(b.x1.y,b.x2.y); y < endpoint_y*Math.random()+(int)Math.max(b.x1.y,b.x2.y); y ++ ) {
+	    	                	for ( int x = (int)Math.min(b.x1.x,b.x2.x); x < endpoint*Math.random()+(int)Math.max(b.x1.x,b.x2.x); x ++ ) {             		
+	    	                		for ( int y = (int)Math.min(b.x1.y,b.x2.y); y < endpoint*Math.random()+(int)Math.max(b.x1.y,b.x2.y); y ++ ) {
 	    	                			Vector3d coordinate=new Vector3d(x,y,0);
 	    	                			toxin.addQuantity(coordinate, conc );
 	    	                		}
 	    	                	}  
 	                    }
-            		endpoint_y ++;
+            		endpoint ++;
             	}
             	else {
-            		endpoint_y = 0;
+            		endpoint = 0;
             	}
-        }
         // Update the toxin field
         toxin.update();         
     }
     
-    public void growBacteriaB( ArrayList<AtiDiffusibleToxinBacterium> bac, ArrayList<AtiDiffusibleToxinBacterium> bacBorn ) {
+    public void growSucp( ArrayList<AtiDiffusibleToxinBacterium> bac, ArrayList<AtiDiffusibleToxinBacterium> bacBorn ) {
     	Random bacRng = new Random(); 			// Random number generator
     	bacRng.setSeed(50); 					// Initializes random number generator
     	
@@ -183,12 +182,6 @@ public class AtiDiffusibleToxinTicker extends BSimTicker {
             if ( b.L <= 1 ) {
             	bac_dead.add(b);          	
             }
-            
-            if(b.toxintime>20) {
-            	//bac_dead.add(b);
-            	b.setK_growth(0);
-            	System.out.print("die"+"\n"); 
-            }
 
         }        
          
@@ -215,13 +208,7 @@ public class AtiDiffusibleToxinTicker extends BSimTicker {
         }
         for (AtiDiffusibleToxinBacterium b : susp_bac) {
             b.lifetime++;
-            
-            //increase toxin time    
-            if(b.isAboveThreshold()==true) {
-            	b.toxintime++; 
-            }else {
-            	b.toxintime=0;
-            }
+
         }      
         
         
@@ -259,7 +246,7 @@ public class AtiDiffusibleToxinTicker extends BSimTicker {
             startTimeAction = System.nanoTime(); 	// Start action timer
 
             growAttacker( attacker_bac, bac_bornAttacker );		// For sub-population A
-            growBacteriaB( susp_bac, bac_bornSusp );		// For sub-population B
+            growSucp( susp_bac, bac_bornSusp );		// For sub-population B
 
             // Prints out information about bacteria when u want it to
             endTimeAction = System.nanoTime();
