@@ -117,6 +117,10 @@ public class PhysicalContactBacteriumDrawer extends BSimP3DDrawer{
         // Draw only one simulation box is selected
             scene(p3d);
             boundaries();
+            if ( SINGLE_SCREEN == CHECKER_BOARD ) {
+            	legend( Color.MAGENTA, "bac A", new int [] {-15, 0, 3, 3}, 57, 130 );
+            	legend( Color.BLUE, "bac B", new int [] {-15, 6, 3, 3}, 57, 175 );
+            }            
             time();
 
         p3d.endDraw();
