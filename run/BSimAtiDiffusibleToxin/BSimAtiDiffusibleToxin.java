@@ -1,4 +1,4 @@
-package testPhysicalContactBacterium;
+package BSimAtiDiffusibleToxin;
 
 import bsim.BSim;
 import bsim.BSimUtils;
@@ -19,9 +19,7 @@ import java.util.*;
 import java.util.List;
 import java.io.File;
 
-
-public class BSimPhysicalContactBacterium {
-
+public class BSimAtiDiffusibleToxin {
 
     static final double pixel_to_um_ratio = 13.89;
     final int width_pixels = 1200;
@@ -35,6 +33,13 @@ public class BSimPhysicalContactBacterium {
     private final int window_height = 800;
 
 	// Initial Conditions
+	/** toxin_condition is used to determine the toxin distribution for the simulation. */
+	private int toxin_condition = 1;
+	/** Toxins flow in from the left boundary. */
+	private static final int FLOW_IN = 1;
+	/** Steady state concentration level. */
+	private double initial_conc = 310; //310
+
     /** SINGLE_SCREEN is used to select the visualization of toxin fields in a single simulation box. **/
     int SINGLE_SCREEN = 1;
     final int CHECKER_BOARD = 1;
@@ -55,10 +60,10 @@ public class BSimPhysicalContactBacterium {
     private boolean export = true;
 
     private static String projectPath = System.getProperty("user.dir");
-    private static String pathToSimulation = projectPath+"/test/"+"testPhysicalContactBacterium/";    
+    private static String pathToSimulation = projectPath+"/run/"+"BSimAtiDiffusibleToxin/";    
     
     @Parameter(names = "-export_path", description = "export location")
-    private String export_path = pathToSimulation+"/PhysicalContactBacteriumResults";
+    private String export_path = pathToSimulation+"/BSimAtiDiffusibleToxinResults";
 
     // Simulation setup parameters. Set dimensions in um
     @Parameter(names = "-dim", arity = 3, description = "The dimensions (x, y, z) of simulation environment (um).")
@@ -135,19 +140,19 @@ public class BSimPhysicalContactBacterium {
     // Separate lists of bacteria in case we want to manipulate the species individually
     // If multiple subpopulations, they'd be initialized separately, they'd be kept in different
     // need an array for each subpopulation, members can be repeated.
-    final ArrayList<TestPhysicalContactBacterium> bacA_bac = new ArrayList();
-    final ArrayList<TestPhysicalContactBacterium> bacB_bac = new ArrayList();
+    final ArrayList<AtiDiffusibleToxinBacterium> attacker_bac = new ArrayList();
+    final ArrayList<AtiDiffusibleToxinBacterium> susp_bac = new ArrayList();
 
     /** Track all of the bacteria in the simulation, for use of common methods etc.
     A general class, no sub-population specifics. */
     final ArrayList<BSimCapsuleBacterium> bacteriaAll = new ArrayList();
 
     // Set up stuff for growth. Placeholders for the recently born and dead
-    final ArrayList<TestPhysicalContactBacterium> bac_bornbacA = new ArrayList();
-    final ArrayList<TestPhysicalContactBacterium> bac_bornbacB = new ArrayList();
+    final ArrayList<AtiDiffusibleToxinBacterium> bac_bornAttacker = new ArrayList();
+    final ArrayList<AtiDiffusibleToxinBacterium> bac_bornSusp = new ArrayList();
 
-    final ArrayList<TestPhysicalContactBacterium> bac_deadbacA = new ArrayList();
-    final ArrayList<TestPhysicalContactBacterium> bac_deadbacB = new ArrayList();
+    final ArrayList<AtiDiffusibleToxinBacterium> bac_deadAttacker = new ArrayList();
+    final ArrayList<AtiDiffusibleToxinBacterium> bac_deadSusp = new ArrayList();
 
     /** Main Function.
      * This is the very first function that runs in the simulation.
@@ -156,7 +161,7 @@ public class BSimPhysicalContactBacterium {
 
         // Creates new simulation data object
         // Initializing storage unit for simulation
-    	BSimPhysicalContactBacterium bsim_ex = new BSimPhysicalContactBacterium();
+    	BSimAtiDiffusibleToxin bsim_ex = new BSimAtiDiffusibleToxin();
 
         // Starts up JCommander which allows you to read options from the command line more easily
         // Command line stuff
@@ -167,7 +172,7 @@ public class BSimPhysicalContactBacterium {
     }
 
     /** Creates a new Bacterium object. */
-    public static TestPhysicalContactBacterium createBacterium(BSim sim) {
+    public static AtiDiffusibleToxinBacterium createBacterium(BSim sim, ChemicalField toxin, ChemicalField resistant) {
     	Random bacRng = new Random(); 		// Random number generator
         bacRng.setSeed(50); 				// Initializes random number generator
 
@@ -193,7 +198,7 @@ public class BSimPhysicalContactBacterium {
         }
 
         // Creates a new bacterium object whose endpoints correspond to the above data
-        TestPhysicalContactBacterium bacterium = new TestPhysicalContactBacterium(sim,pos1, pos2);
+        AtiDiffusibleToxinBacterium bacterium = new AtiDiffusibleToxinBacterium(sim, toxin, resistant, pos1, pos2);
 
         // Determine the vector between the endpoints
         // If the data suggests that a bacterium is larger than L_max, that bacterium will instead
@@ -260,6 +265,27 @@ public class BSimPhysicalContactBacterium {
 		// This overrides leakiness!
 		sim.setSolid(true, true, true);		// Solid (true) or wrapping (false) boundaries
 
+		/*********************************************************
+		 * Set up the toxin field
+		 */
+		final double c = 375;			       		// Decrease this to see lower concentrations
+		final double decayRate = 0.0;				// Decay rate of toxins
+		final double diffusivity = 7.0;				// (Microns)^2/sec
+
+		final int field_box_num = 50;				// Number of boxes to represent the chemical field
+		final ChemicalField toxin = new ChemicalField(sim, new int[]{field_box_num, field_box_num, 1}, diffusivity, decayRate);
+		
+        // Leaky -> bacteria can escape from sides of six faces of the box.
+		// Only usable if fixedbounds allows it
+		// Set a closed or open boundary for toxin diffusion
+		if ( fixedBounds ) {
+			sim.setLeaky(false, false, false, false, false, false);
+			sim.setLeakyRate(0, 0, 0, 0, 0, 0);
+		}
+		else {
+			sim.setLeaky(true, true, true, true, false, false);
+			sim.setLeakyRate(1, 1, 1, 1, 0, 0);
+		}
 
         /*********************************************************
          * Create the bacteria
@@ -275,14 +301,16 @@ public class BSimPhysicalContactBacterium {
         while ( bacteriaAll.size() < initialPopulation ) {
     		// Create two sub-populations of bacteria objects randomly in space
             // Creates a new bacterium object whose endpoints correspond to the above data
-            TestPhysicalContactBacterium bacA_bacterium = createBacterium( sim);
-            TestPhysicalContactBacterium bacB_bacterium = createBacterium( sim);
+            AtiDiffusibleToxinBacterium attacker_bacterium = createBacterium( sim, null, null);
+            AtiDiffusibleToxinBacterium susp_bacterium = createBacterium( sim, toxin, null );
 
+            attacker_bacterium.set_enzymNUM(5e5);
+            susp_bacterium.set_enzymNUM(0);
     		// Adds the newly created bacterium to our lists for tracking purposes
-    		bacA_bac.add(bacA_bacterium); 				// For separate subpopulations
-    		bacB_bac.add(bacB_bacterium); 				// For separate subpopulations
-    		bacteriaAll.add(bacA_bacterium);		// For all cells
-    		bacteriaAll.add(bacB_bacterium);		// For all cells
+    		attacker_bac.add(attacker_bacterium); 				// For separate subpopulations
+    		susp_bac.add(susp_bacterium); 				// For separate subpopulations
+    		bacteriaAll.add(attacker_bacterium);		// For all cells
+    		bacteriaAll.add(susp_bacterium);		// For all cells
         }
 
         // Internal machinery - dont worry about this line
@@ -294,16 +322,16 @@ public class BSimPhysicalContactBacterium {
          * Set up the ticker
          */
         final int LOG_INTERVAL = 100; // logs data every 100 timesteps
-        PhysicalContactBacteriumTicker ticker = new PhysicalContactBacteriumTicker(sim, bacA_bac, bacB_bac, bacteriaAll, LOG_INTERVAL, bacRng,
-        		el_stdv, el_mean, div_stdv, div_mean);
+        AtiDiffusibleToxinTicker ticker = new AtiDiffusibleToxinTicker(sim, attacker_bac, susp_bac, bacteriaAll, LOG_INTERVAL, bacRng,
+        		el_stdv, el_mean, div_stdv, div_mean, toxin, toxin_condition);
         ticker.setGrowth(WITH_GROWTH);			// enables bacteria growth
         sim.setTicker(ticker);
 
         /*********************************************************
          * Set up the drawer
          */
-        PhysicalContactBacteriumDrawer drawer = new PhysicalContactBacteriumDrawer(sim, width_um, height_um, window_width, window_height,
-        		bacA_bac, bacB_bac,SINGLE_SCREEN);
+        AtiDiffusibleToxinDrawer drawer = new AtiDiffusibleToxinDrawer(sim, width_um, height_um, window_width, window_height,
+        		attacker_bac, susp_bac, toxin,c, SINGLE_SCREEN);
         sim.setDrawer(drawer);
 
         if(export) {

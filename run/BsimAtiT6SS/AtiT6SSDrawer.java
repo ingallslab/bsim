@@ -1,4 +1,4 @@
-package testPhysicalContactBacterium;
+package BsimAtiT6SS;
 
 import bsim.BSim;
 import bsim.BSimChemicalField;
@@ -11,11 +11,11 @@ import processing.core.PGraphics3D;
 import java.awt.*;
 import java.util.ArrayList;
 
-public class PhysicalContactBacteriumDrawer extends BSimP3DDrawer{
+public class AtiT6SSDrawer extends BSimP3DDrawer{
 
     // Bacterium should be a sub-class of BSimCapsuleBacterium
-    final ArrayList<TestPhysicalContactBacterium> bacA_bac;
-    final ArrayList<TestPhysicalContactBacterium> bacB_bac;
+    final ArrayList<AtiT6SSBacterium> attacker_bac;
+    final ArrayList<AtiT6SSBacterium> suscp_bac;
     final double simX;
     final double simY;
     final double window_height;
@@ -26,16 +26,16 @@ public class PhysicalContactBacteriumDrawer extends BSimP3DDrawer{
     final int CHECKER_BOARD = 1;
     final int MIXED_CONC = 2;
     
-    public PhysicalContactBacteriumDrawer(BSim sim, double simX, double simY, int window_width, int window_height,
-    		ArrayList<TestPhysicalContactBacterium> bac_to_drawA, ArrayList<TestPhysicalContactBacterium> bac_to_drawB,
+    public AtiT6SSDrawer(BSim sim, double simX, double simY, int window_width, int window_height,
+    		ArrayList<AtiT6SSBacterium> bac_to_attacker, ArrayList<AtiT6SSBacterium> bac_to_suscp,
     		int SINGLE_SCREEN) {
         super(sim, window_width, window_height);
         this.simX = simX;
         this.simY = simY;
         this.window_height = window_height;
         this.window_width = window_width;
-        bacA_bac = bac_to_drawA;
-        bacB_bac = bac_to_drawB;
+        attacker_bac = bac_to_attacker;
+        suscp_bac = bac_to_suscp;
 
         this.SINGLE_SCREEN = SINGLE_SCREEN;
     }
@@ -66,30 +66,6 @@ public class PhysicalContactBacteriumDrawer extends BSimP3DDrawer{
     	p3d.fill(50);
     	p3d.text(title, textX, textY);
     }
-    
-	/** Returns the associated color from the difference of two concentrations relative to concA. */
-	public static Color getColor( double conc_A,double max_conc_difference ) {
-		double conc = conc_A ;			// Concentration difference is relative to field A
-		float value = 0.0f;						// Between 0 and 1
-		
-		// The floor of the hue is multiplied by 360 to get hue angle from HSB color model
-		float max_hue = 0.1f;
-		float min_hue = 0.9f;
-		float mid_hue = (max_hue + min_hue) / 2;
-		
-		if ( conc >= max_conc_difference ) {
-			value = 1/2f;// Blue 		
-		}
-		else if ( conc <= -max_conc_difference ) {
-			value = 2/3f;// Green		
-		}
-		else {
-			value = (float) ( (mid_hue)*(conc/max_conc_difference) );
-		}
-		
-		float hue = value * max_hue + ( 1 - value ) * min_hue;
-		return new Color( Color.HSBtoRGB(hue, 1f, 1f) );
-	}
 	
 	/** Draw **/
     @Override
@@ -118,8 +94,8 @@ public class PhysicalContactBacteriumDrawer extends BSimP3DDrawer{
             scene(p3d);
             boundaries();
             if ( SINGLE_SCREEN == CHECKER_BOARD ) {
-            	legend( Color.MAGENTA, "bac A", new int [] {-15, 0, 3, 3}, 57, 130 );
-            	legend( Color.BLUE, "bac B", new int [] {-15, 6, 3, 3}, 57, 175 );
+            	legend( Color.MAGENTA, "Attacker", new int [] {-8, 0, 3, 3}, 57, 130 );
+            	legend( Color.BLUE, "Susceptible", new int [] {-8, 6, 3, 3}, 57, 175 );
             }            
             time();
 
@@ -151,13 +127,13 @@ public class PhysicalContactBacteriumDrawer extends BSimP3DDrawer{
         p3d.directionalLight(128, 128, 128, 1, 1, -1);
 		
         // Draw sub-population A
-        for ( int i = 0; i < bacA_bac.size(); i ++ ) {
-        	draw(bacA_bac.get(i), Color.GREEN);
+        for ( int i = 0; i < attacker_bac.size(); i ++ ) {
+        	draw(attacker_bac.get(i), Color.GREEN);
         }
         
         // Draw sub-population B 
-        for ( int i = 0; i < bacB_bac.size(); i ++ ) {
-        	draw(bacB_bac.get(i),Color.CYAN);
+        for ( int i = 0; i < suscp_bac.size(); i ++ ) {
+        	draw(suscp_bac.get(i),suscp_bac.get(i).isContactHappen()? Color.BLACK : Color.CYAN);
         }
     }
 }

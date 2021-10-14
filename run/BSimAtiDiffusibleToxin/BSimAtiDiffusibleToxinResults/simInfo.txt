@@ -1,0 +1,6 @@
+Simulation metadata.
+Catie Terrey Fall 2020.
+Simulation dimensions: (86.39308855291576, 71.99424046076314, 1.0)
+Initial population: 4
+Ratio 0.0
+Boundaries: fixed

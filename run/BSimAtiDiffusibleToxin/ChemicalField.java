@@ -1,4 +1,4 @@
-package testPhysicalContactBacterium;
+package BSimAtiDiffusibleToxin;
 
 import bsim.BSim;
 import bsim.BSimChemicalField;

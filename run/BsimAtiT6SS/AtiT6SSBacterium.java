@@ -1,18 +1,17 @@
-package testPhysicalContactBacterium;
+package BsimAtiT6SS;
 
 import bsim.BSim; 
 
-import bsim.BSimChemicalField;
 import bsim.physical.contact.PhysicalContactBacterium;
 import bsim.winter2021.Bacterium;
 import javax.vecmath.Vector3d;
 
 import java.util.*;
 /**
- * This class represents a collision between two bacteria.
- * If bacterium i from bacterium B type comes in contact with bacterium j from Bacterium A type, its growth rate will be zero.
+ * This class represents a collision between Attacker and susceptible bacteria.
+ * If bacterium i from bacterium Susceptible comes in contact with bacterium j from Bacterium Attacker, its growth rate will be zero.
  */
-public class TestPhysicalContactBacterium extends PhysicalContactBacterium {
+public class AtiT6SSBacterium extends PhysicalContactBacterium {
 	
 	/** Initial growth rate of the bacteria. */
 	public static double initial_el_mean = 0.2;
@@ -23,10 +22,13 @@ public class TestPhysicalContactBacterium extends PhysicalContactBacterium {
 	final private double shrink_stdv = 0.134;			
 	final private double shrink_mean = -0.117;
 	final private double shrink_rate;
-
+	
+	/** Flag to indicate toxin levels are above threshold. */
+	private boolean contact=false;    
+	
 	
     // Function you call when you want to make a new bacterium object
-    public TestPhysicalContactBacterium(BSim sim,Vector3d px1, Vector3d px2){
+    public AtiT6SSBacterium(BSim sim,Vector3d px1, Vector3d px2){
     	
         // "Bacterium" is a type of capsule bacterium, so we need to do all the things that a CapsuleBacterium does first.
         // This is the purpose of super(). The function super() initializes this bacterium object by first
@@ -44,7 +46,7 @@ public class TestPhysicalContactBacterium extends PhysicalContactBacterium {
     }
 
     // Function you call when you want to make a bacterium object that is a child of another
-    public TestPhysicalContactBacterium(BSim sim,Vector3d px1, Vector3d px2, long origin_id, long parent_id){
+    public AtiT6SSBacterium(BSim sim,Vector3d px1, Vector3d px2, long origin_id, long parent_id){
 
         // "Bacterium" is a type of capsule bacterium, so we need to do all the things that a CapsuleBacterium does first.
         // This is the purpose of super(). The function super() initializes this bacterium object by first
@@ -69,7 +71,7 @@ public class TestPhysicalContactBacterium extends PhysicalContactBacterium {
     
 
     // This function is called when the bacterium has passed its' division threshold and is ready to divide.
-    public TestPhysicalContactBacterium divide() {
+    public AtiT6SSBacterium divide() {
         Vector3d randomVec = new Vector3d(rng.nextDouble(), rng.nextDouble(), rng.nextDouble());
         randomVec.scale(twist);
 
@@ -105,7 +107,7 @@ public class TestPhysicalContactBacterium extends PhysicalContactBacterium {
 
         // Set the child cell.
         // Creates new bacterium called child and adds it to the lists, gives posns, infected status and chemical field status
-        TestPhysicalContactBacterium child = new TestPhysicalContactBacterium(sim,x1_child, new Vector3d(this.x2), this.origin_id, this.id);
+        AtiT6SSBacterium child = new AtiT6SSBacterium(sim,x1_child, new Vector3d(this.x2), this.origin_id, this.id);
         this.parent_id = this.id;
         this.lifetime = 0;
         // this.initialise(L1, this.x1, x2_new); // for symmetric growth
@@ -122,5 +124,16 @@ public class TestPhysicalContactBacterium extends PhysicalContactBacterium {
         angle_initial = coordinate(child);
 
         return child;
-    }
+    }     
+ 
+    
+    //check contact is happened or not
+    public void isContact(boolean contact) {
+        this.contact = contact;
+    } 
+    
+    /** Returns the flag that indicates contact is happened. */
+    public boolean isContactHappen() { return contact; }    
+    
+    
 }
