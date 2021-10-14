@@ -8,12 +8,11 @@ import javax.vecmath.Vector3d;
 
 import java.util.*;
 /**
- * This class represents a bacteria for a cross-protection simulation. 
- * The growth rate of the bacteria depends on it's initial growth rate and the surrounding
- * concentration of toxins. 
- * If a cell is surrounded by an toxin it isn't resistant to, the growth rate will decrease. 
- * If the concentration of toxin around a bacteria is greater than a certain threshold, the cell 
- * will start to shrink and die (turns red in the simulation). 
+ * This class represents the attacking of attacker bacteria to susceptible bacteria.
+ * The growth rate of the susceptible bacteria depends on it's initial growth rate and the surrounding
+ * concentration of toxins (the growth rate will decrease). 
+ * If the concentration of toxin around a susceptible bacteria is greater than a certain threshold, the cell
+ * growth rate will be zero (turns black in the simulation). 
  */
 public class AtiDiffusibleToxinBacterium extends Bacterium {
 	/** Chemical field representing the toxin the bacteria is resistant to. */
@@ -116,8 +115,8 @@ public class AtiDiffusibleToxinBacterium extends Bacterium {
             	
             	// Bacteria starts shrinking 
             	Random bacRng = new Random();	
-    	        setK_growth( shrink_rate );
-            	//setK_growth(0.0);		// stops growing
+    	        setK_growth(0.0);
+            	//setK_growth(shrink_rate);		// stops growing
     	        //setProduction(false); 	// stops producing enzymes when dying
             }
             // If toxin levels are below the threshold, 
