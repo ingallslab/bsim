@@ -25,6 +25,9 @@ public class Parameters {
     @Parameter(names = "-input_data", description = "path to input data")
     public String input_data = "default";
 
+    @Parameter(names = "-run_mode", description = "toggle run mode between generic and abc (approximate bayesian computing) modes")
+    public String run_mode = "default";
+	
     @Parameter(names="-export_time",arity=1,description = "export time")
     public static double export_time = 0.5;// Previously was 10, and simulation time was 100
 

@@ -117,6 +117,7 @@ public class BasicSimulation2D {
         boolean export = parameters.export;
         String export_path = parameters.export_path;
         String input_data = parameters.input_data;
+	String run_mode = parameters.run_mode;
         List<Double> simDimensions = parameters.simDimensions;
         boolean fixedBounds = parameters.fixedBounds;
         int initialPopulation = parameters.initialPopulation;
@@ -242,12 +243,15 @@ public class BasicSimulation2D {
         }
 
         String filePath;
-        if(export_path == "default") {
+	filePath = BSimUtils.generateDirectoryPath(export_path + "/" + java.util.UUID.randomUUID() + "/");
+        if (export_path == "default") {
             filePath = BSimUtils.generateDirectoryPath(systemPath +"/" + simParameters + "/");
-        } else {
-            filePath = BSimUtils.generateDirectoryPath(export_path + "/" + java.util.UUID.randomUUID() + "/");
+        } 
+	if (run_mode.matches("abc")) {
+	    filePath = BSimUtils.generateDirectoryPath(export_path + "/");
         }
 
+	System.out.println(filePath);	
 
         /** Export a csv file that matches CellProfiler's output */
 
