@@ -198,8 +198,13 @@ public class BasicSimulation2D {
 
         String systemPath = new File("").getAbsolutePath();
 
-        // TODO: HANDLE DEFAULT INPUT DATA FILE
-        String initial_data_path = input_data;
+        String initial_data_path = "";
+        if (input_data.equals("default")) {
+            initial_data_path = "run/initialization_data/onecell-1800by1800.csv";
+        } else {
+            initial_data_path = input_data;
+        }
+
         RawReader reader = new RawReader(pixel_to_um_ratio);
 
         ArrayList<double[]> cell_endpoints = reader.readcsv(initial_data_path);
