@@ -195,9 +195,9 @@ public class BasicSimulation2D {
 
         // gets the location of the file that is currently running
         //specify output file path
-
         String systemPath = new File("").getAbsolutePath();
 
+        //Specify path to input data
         String initial_data_path = "";
         if (input_data.equals("default")) {
             initial_data_path = "run/initialization_data/onecell-1800by1800.csv";
