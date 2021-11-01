@@ -45,7 +45,7 @@ public class CellProfilerLogger extends BSimLogger {
 
         String buffer = "";
         for(Bacterium b : bac) {
-            double area = (Math.PI * b.radius * b.radius + 2 * b.radius * b.L) * 13.89 * 13.89;
+            double area = (Math.PI * b.radius * b.radius + 2 * b.radius * b.L) * pixel_to_um_ratio * pixel_to_um_ratio; //13.89 is the pixel to um ratio, shouldn't be hard-coded like this.
             int image_number = (int) (sim.getTimestep() * sim.getDt() / dt + 0.5) + 1;
 
             String AreaShape_fields =  image_number + "," + (b.id + 1) + "," + area + "," + str.repeat(5) +
