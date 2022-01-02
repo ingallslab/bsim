@@ -274,8 +274,11 @@ public class AtiDiffusibleToxinDrawer extends BSimP3DDrawer{
             scene(p3d);
             boundaries();
             if ( SINGLE_SCREEN == CHECKER_BOARD ) {
-            	legend( Color.MAGENTA, "Attacker", new int [] {-8, 0, 3, 3}, 57, 130 );
-            	legend( Color.BLUE, "Susceptible", new int [] {-8, 6, 3, 3}, 57, 175 );
+            	legend( Color.RED, "Attacker", new int [] {-8, 0, 3, 3}, 57, 130 );
+            	legend( Color.YELLOW, "Susceptible", new int [] {-8, 6, 3, 3}, 57, 175 );  
+            	legend( Color.BLUE, "Affected susceptible ", new int [] {-8, 12, 3, 3}, 10, 225 );    
+            	legend( Color.BLUE, "cells by colicin", new int [] {-8, 12, 3, 3}, 10, 255 );  
+            	legend( Color.MAGENTA, "Toxin field", new int [] {-8, 22, 3, 3}, 57, 305 );                	
             }
             else if ( SINGLE_SCREEN == MIXED_CONC ) {
             	concDifferenceRef(-15, 4, 3, 525/*2.5f*/, 100, 50, "Field A");
@@ -311,12 +314,12 @@ public class AtiDiffusibleToxinDrawer extends BSimP3DDrawer{
         
         // Draw sub-population A
         for ( int i = 0; i < attacker_bac.size(); i ++ ) {
-        	draw(attacker_bac.get(i), attacker_bac.get(i).isAboveThreshold() ? Color.BLACK : Color.GREEN);
+        	draw(attacker_bac.get(i), attacker_bac.get(i).isAboveThreshold() ? Color.BLACK : Color.RED);
         }
         
         // Draw sub-population B
         for ( int i = 0; i < susp_bac.size(); i ++ ) {
-        	draw(susp_bac.get(i), susp_bac.get(i).isAboveThreshold() ? Color.RED : Color.CYAN);
+        	draw(susp_bac.get(i), susp_bac.get(i).isAboveThreshold() ? Color.BLUE : Color.YELLOW);
         }
 
     }
@@ -337,12 +340,12 @@ public class AtiDiffusibleToxinDrawer extends BSimP3DDrawer{
 		
         // Draw sub-population A
         for ( int i = 0; i < attacker_bac.size(); i ++ ) {
-        	draw(attacker_bac.get(i), attacker_bac.get(i).isAboveThreshold() ? Color.RED : Color.GREEN);
+        	draw(attacker_bac.get(i), attacker_bac.get(i).isAboveThreshold() ? Color.RED : Color.RED);
         }
         
         // Draw sub-population B 
         for ( int i = 0; i < susp_bac.size(); i ++ ) {
-        	draw(susp_bac.get(i), susp_bac.get(i).isAboveThreshold() ? Color.BLACK : Color.CYAN);
+        	draw(susp_bac.get(i), susp_bac.get(i).isAboveThreshold() ? Color.BLUE : Color.YELLOW);
         }
     }
 }

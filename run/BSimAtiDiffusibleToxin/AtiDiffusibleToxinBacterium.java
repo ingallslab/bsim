@@ -115,8 +115,7 @@ public class AtiDiffusibleToxinBacterium extends Bacterium {
             	
             	// Bacteria starts shrinking 
             	Random bacRng = new Random();	
-    	        setK_growth(0.0);
-            	//setK_growth(shrink_rate);		// stops growing
+            	setK_growth(shrink_rate);		// stops growing
     	        //setProduction(false); 	// stops producing enzymes when dying
             }
             // If toxin levels are below the threshold, 

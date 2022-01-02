@@ -100,7 +100,7 @@ public class BSimAtiDiffusibleToxin {
 
     // Simulation Time
     @Parameter(names="-simt",arity=1,description = "simulation time")
-    public static double sim_time = 5;
+    public static double sim_time = 7;
     @Parameter(names="-simdt",arity=1,description = "simulation time step")
     public static double sim_dt = 0.05;
     @Parameter(names="-export_time",arity=1,description = "export time")
@@ -381,6 +381,7 @@ public class BSimAtiDiffusibleToxin {
             metaLogger.setDt(export_time);	// Set export time step (used to be 10, simulation time used to be 100)
             sim.addExporter(metaLogger);
 
+//all bacteria
             BSimLogger posLogger = new BSimLogger(sim, filePath + "position.csv") {
                 DecimalFormat formatter = new DecimalFormat("###.##", DecimalFormatSymbols.getInstance( Locale.ENGLISH ));
 
@@ -454,6 +455,157 @@ public class BSimAtiDiffusibleToxin {
             sumLogger.setDt(export_time);			// Set export time step
             sim.addExporter(sumLogger);
 
+            
+            
+//attacker
+            BSimLogger attackerLogger = new BSimLogger(sim, filePath + "attackerPosition.csv") {
+                DecimalFormat formatter = new DecimalFormat("###.##", DecimalFormatSymbols.getInstance( Locale.ENGLISH ));
+
+                @Override
+                public void before() {
+                    super.before();
+                    write("per Act; per Rep; id, p1x, p1y, p1z, p2x, p2y, p2z, growth_rate,directions");
+                }
+
+                @Override
+                public void during() {
+                    String buffer = new String();
+
+                    buffer += sim.getFormattedTime() + "\n";
+                    write(buffer);
+
+                    write("acts");
+
+                    buffer = "";
+                    for(BSimCapsuleBacterium b : attacker_bac) {
+                        buffer += b.id + "," + formatter.format(b.x1.x)
+                                + "," + formatter.format(b.x1.y)
+                                + "," + formatter.format(b.x1.z)
+                                + "," + formatter.format(b.x2.x)
+                                + "," + formatter.format(b.x2.y)
+                                + "," + formatter.format(b.x2.z)
+                                + "," + formatter.format(b.getK_growth())
+                                + "\n";
+                    }
+
+                    write(buffer);
+
+                }
+            };
+            attackerLogger.setDt(export_time);			// set export time step for csv file
+            sim.addExporter(attackerLogger);
+
+
+            BSimLogger sumattackerLogger = new BSimLogger(sim, filePath + "attackerSummary.csv") {
+
+
+                @Override
+                public void before() {
+                    super.before();
+                    write("time,id, p1x, p1y, p1z, p2x, p2y, p2z, px, py, pz, growth_rate, directions");
+                }
+
+                @Override
+                public void during() {
+                    String buffer = new String();
+                    buffer = "";
+                    for(BSimCapsuleBacterium b : attacker_bac) {
+                        buffer += sim.getFormattedTime()+","+b.id
+                                + "," + b.x1.x
+                                + "," + b.x1.y
+                                + "," + b.x1.z
+                                + "," + b.x2.x
+                                + "," + b.x2.y
+                                + "," + b.x2.z
+                                + "," + b.position.x
+                                + "," + b.position.y
+                                + "," + b.position.z
+                                + "," + b.getK_growth()
+                                + "," + b.direction()
+                                + "\n";
+                    }
+
+                    write(buffer);
+                }
+            };
+            sumattackerLogger.setDt(export_time);			// Set export time step
+            sim.addExporter(sumattackerLogger);
+            
+            
+//susceptible
+            BSimLogger suspLogger = new BSimLogger(sim, filePath + "susceptiblePosition.csv") {
+                DecimalFormat formatter = new DecimalFormat("###.##", DecimalFormatSymbols.getInstance( Locale.ENGLISH ));
+
+                @Override
+                public void before() {
+                    super.before();
+                    write("per Act; per Rep; id, p1x, p1y, p1z, p2x, p2y, p2z, growth_rate,directions");
+                }
+
+                @Override
+                public void during() {
+                    String buffer = new String();
+
+                    buffer += sim.getFormattedTime() + "\n";
+                    write(buffer);
+
+                    write("acts");
+
+                    buffer = "";
+                    for(BSimCapsuleBacterium b : susp_bac) {
+                        buffer += b.id + "," + formatter.format(b.x1.x)
+                                + "," + formatter.format(b.x1.y)
+                                + "," + formatter.format(b.x1.z)
+                                + "," + formatter.format(b.x2.x)
+                                + "," + formatter.format(b.x2.y)
+                                + "," + formatter.format(b.x2.z)
+                                + "," + formatter.format(b.getK_growth())
+                                + "\n";
+                    }
+
+                    write(buffer);
+
+                }
+            };
+            suspLogger.setDt(export_time);			// set export time step for csv file
+            sim.addExporter(suspLogger);
+
+
+            BSimLogger sumsuspLogger = new BSimLogger(sim, filePath + "susceptibleSummary.csv") {
+
+
+                @Override
+                public void before() {
+                    super.before();
+                    write("time,id, p1x, p1y, p1z, p2x, p2y, p2z, px, py, pz, growth_rate, directions");
+                }
+
+                @Override
+                public void during() {
+                    String buffer = new String();
+                    buffer = "";
+                    for(BSimCapsuleBacterium b : susp_bac) {
+                        buffer += sim.getFormattedTime()+","+b.id
+                                + "," + b.x1.x
+                                + "," + b.x1.y
+                                + "," + b.x1.z
+                                + "," + b.x2.x
+                                + "," + b.x2.y
+                                + "," + b.x2.z
+                                + "," + b.position.x
+                                + "," + b.position.y
+                                + "," + b.position.z
+                                + "," + b.getK_growth()
+                                + "," + b.direction()
+                                + "\n";
+                    }
+
+                    write(buffer);
+                }
+            };
+            sumsuspLogger.setDt(export_time);			// Set export time step
+            sim.addExporter(sumsuspLogger);            
+            
             /**
              * Export a rendered image file
              */
