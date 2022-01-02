@@ -94,8 +94,9 @@ public class AtiT6SSDrawer extends BSimP3DDrawer{
             scene(p3d);
             boundaries();
             if ( SINGLE_SCREEN == CHECKER_BOARD ) {
-            	legend( Color.MAGENTA, "Attacker", new int [] {-8, 0, 3, 3}, 57, 130 );
-            	legend( Color.BLUE, "Susceptible", new int [] {-8, 6, 3, 3}, 57, 175 );
+            	legend( Color.RED, "Attacker", new int [] {-8, 0, 3, 3}, 57, 130 );
+            	legend( Color.YELLOW, "Susceptible", new int [] {-8, 6, 3, 3}, 57, 175 );
+            	legend( Color.BLACK, "Lysed cell", new int [] {-8, 12, 3, 3}, 57, 225 );            	
             }            
             time();
 
@@ -128,12 +129,12 @@ public class AtiT6SSDrawer extends BSimP3DDrawer{
 		
         // Draw sub-population A
         for ( int i = 0; i < attacker_bac.size(); i ++ ) {
-        	draw(attacker_bac.get(i), Color.GREEN);
+        	draw(attacker_bac.get(i), Color.RED);
         }
         
         // Draw sub-population B 
         for ( int i = 0; i < suscp_bac.size(); i ++ ) {
-        	draw(suscp_bac.get(i),suscp_bac.get(i).isContactHappen()? Color.BLACK : Color.CYAN);
+        	draw(suscp_bac.get(i),suscp_bac.get(i).contacttime>20? Color.BLACK : Color.YELLOW);
         }
     }
 }

@@ -24,7 +24,8 @@ public class AtiT6SSBacterium extends PhysicalContactBacterium {
 	final private double shrink_rate;
 	
 	/** Flag to indicate toxin levels are above threshold. */
-	private boolean contact=false;    
+	private boolean contact=false; 
+    public int contacttime; 
 	
 	
     // Function you call when you want to make a new bacterium object
@@ -43,6 +44,7 @@ public class AtiT6SSBacterium extends PhysicalContactBacterium {
         setK_growth(initial_el_rate);
         // Calculate the rate at which the bacteria will shrink
         shrink_rate = shrink_stdv * bacRng.nextGaussian() + shrink_mean;
+        contacttime=0;
     }
 
     // Function you call when you want to make a bacterium object that is a child of another
@@ -61,6 +63,7 @@ public class AtiT6SSBacterium extends PhysicalContactBacterium {
         setK_growth(initial_el_rate);
         // Calculate the rate at which the bacteria will shrink
         shrink_rate = shrink_stdv * bacRng.nextGaussian() + shrink_mean;
+        contacttime=0;
     }
 
     /** Sets the elongation mean. **/
@@ -110,6 +113,7 @@ public class AtiT6SSBacterium extends PhysicalContactBacterium {
         AtiT6SSBacterium child = new AtiT6SSBacterium(sim,x1_child, new Vector3d(this.x2), this.origin_id, this.id);
         this.parent_id = this.id;
         this.lifetime = 0;
+        this.contacttime=0;
         // this.initialise(L1, this.x1, x2_new); // for symmetric growth
         // Asymmetrical growth occurs at division node
         // so we need to swap x1 and x2 for the mother after division for asymmetrical elongation

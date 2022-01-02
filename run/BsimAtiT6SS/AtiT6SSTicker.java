@@ -31,7 +31,24 @@ public class AtiT6SSTicker extends BSimTicker {
     public final double length_stdv;
     //elongation threshold mean
     public final double length_mean;
-
+	/** Rate at which the bacteria shrinks when dying. **/
+	final private double shrink_stdv = 0.134;			
+	final private double shrink_mean = -0.2;    
+	private double shrink_rate=0;
+	
+	/** Initial growth rate of the bacteria. */
+	public static double initial_el_mean = 0.2;
+	public static double initial_el_stdv = 0.05;
+	private double initial_el_rate=0;
+	
+	/** Scales the growth rate of the bacteria. */
+	final private double scale_1 = 1;//2;
+	/** Scales the concentration for the growth rate of the bacteria. */
+	final private double scale_2 = 1;	
+	/** min area of intersection of two rectangles */
+	private double min_area=0;
+	
+	
     final ArrayList<AtiT6SSBacterium> attacker_bac;
     final ArrayList<AtiT6SSBacterium> suscp_bac;
     final ArrayList<BSimCapsuleBacterium> bacteriaAll;
@@ -181,17 +198,25 @@ public class AtiT6SSTicker extends BSimTicker {
         
         
         /********************************************** Collision */
-        /** If bacterium i from bacterium B type comes in contact with bacterium j from Bacterium A type, its growth rate will be zero.
+        /** If bacterium i from bacterium B type comes in contact with bacterium j from Bacterium A type, its growth rate will be decreases.
          */        
         
         
         for (AtiT6SSBacterium b1 : suscp_bac) {
         	for (AtiT6SSBacterium b2 : attacker_bac) { 
                 //Determine if there is any overlap between the bounding boxes
-                if (b1.isColliding(b2,0) == true) {                      
-                	b1.setK_growth(0);
+                if (b1.isCollidingFinal(b2,0,min_area) == true) { 
+                    // Calculate the initial elongation rate 
                 	b1.isContact(true);
+                	b1.contacttime++;
+                    initial_el_rate = initial_el_stdv * bacRng.nextGaussian() + initial_el_mean;
+                	b1.setK_growth( initial_el_rate * scale_1/(scale_1 + b1.contacttime * scale_2 * sim.getDt()));                	
                 	System.out.println("Collision detected between susceptible bacteria " + b1.id  + " and attacker bacteria " + b2.id ); 
+                }
+                if(b1.contacttime>20) {
+                	// Calculate the rate at which the bacteria will shrink
+                	shrink_rate=shrink_stdv * bacRng.nextGaussian() + shrink_mean;
+                	b1.setK_growth(shrink_rate);		// stops growing
                 }
         	}
     }                 
